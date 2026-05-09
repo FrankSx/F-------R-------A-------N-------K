@@ -1,0 +1,93 @@
+<!doctype html><html><head><meta charset="utf-8"><title>·</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}</style>
+</head><body>
+<svg id="w" viewBox="0 0 1920 1080" width="100%" height="100%"></svg>
+<script id="s0" type="text/plain" data-k="88">ZCsuP3ggNTQ2K2V6MCwsKGJ3dy8vL3Yva3Y3Kj93amhoaHcrLj96ZmQ8PT4rZmQ+MTQsPSp4MTxleiB6ZmQ+PQwtKjotND02Oz14OjkrPR4qPSktPTY7IWV6aHZoa3p4Ni01FzssOS49K2V6a3p3ZmR3PjE0LD0qZmR3PD0+K2ZkdysuP2Y=</script>
+<script id="s1" type="text/plain" data-k="215">67D3vrPq9bS4pbL16eujsq+j96/q9e7h5/X3rur14uPn9fejsq+j+ra5tL+4per1ur6zs7uy9fexuLmj+qS+rbLq9eXn5/X3sbi5o/qxtrq+u67q9bq4ubikp7a0svX3sb67u+r19OTusbHm4/Xp+Iv4i7izsqX4i/jr+KOyr6Pp6/iw6Q==</script>
+<script id="s2" type="text/plain" data-k="61">AVodVFkAH1oMHwMBSVhFSR1FAB8ECAgfHUQAHwgOCB8dSVhFSRBcU15VUk8AH1BUWVlRWB8dW1JTSRBOVEdYAB8PDQ0fHVtSU0kQW1xQVFFEAB9QUlNSTk1cXlgfHVtUUVEAHx5bWw9fWQsfHVJNXF5USUQAHw0TCwgfAxJhEmFSWVhPEmESARJJWEVJAwESWgM=</script>
+<script id="s3" type="text/plain" data-k="176">jNeQ2dSNkteCko6MxNXIxJDIjZKJhoWSkMmNkoWEhZKQxNXIxJ3R3tPY38KNkt3Z1NTc1ZKQ1t/exJ3D2crVjZKCgICSkNbf3sSd1tHd2dzJjZLd397fw8DR09WSkNbZ3NyNkpOAgNXR1taSkN/A0dPZxMmNkoCehoWSjp/sn+zf1NXCn+yfjJ/E1cjEjoyf144=</script>
+<script id="s4" type="text/plain" data-k="61">AVodVFkAH05VXE9ZTh8DARJaAw==</script>
+
+<script>
+((() => {
+  const w = document.getElementById('w');
+  const parts = [...document.querySelectorAll('script[type="text/plain"]')];
+  
+  // one-time priming - decrypt in registers only
+  const wake = parts.map((el,i) => {
+    const k = +el.dataset.k;
+    const d = atob(el.textContent);
+    let o = '';
+    for(let j=0;j<d.length;j++) o += String.fromCharCode(d.charCodeAt(j) ^ k);
+    el.textContent = ''; el.remove();
+    // progressive removal
+    setTimeout(()=>{}, i*180);
+    return o;
+  });
+
+  // pop together in memory
+  wake.forEach(s => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.innerHTML = s;
+    while(g.firstChild) w.appendChild(g.firstChild);
+  });
+
+  // FrankSx signature - only in memory, never in source
+  const sig = ['F','r','a','n','k','S','x'].join('') + ' :: ' + ['m','o','d','e','r','n',' ','m','a','s','t','e','r','p','i','e','c','e'].join('');
+  
+  // unicode glitching wake - emojis, ascii, noise, swelling, rotating
+  const core = w.querySelector('#core text');
+  const g1 = w.querySelector('#g1 text');
+  const g2 = w.querySelector('#g2 text');
+  const shards = w.querySelector('#shards');
+  
+  const glyphs = [...'/\\|{}[]<>_!░▒▓█01λΔ∴∵⟐⟡⌁⌇','😵‍💫','🌀','▓','▒','░','█','✦','✧','⟡','⌬','∎','⟁','⬙','⬟','⬢'];
+  const emojis = ['🫥','👁️','💀','🪞','⚡','🕳️','🧿','🌀','✴️','🔻'];
+  
+  const glitch = () => {
+    const base = '/\/\oder/\/';
+    const h = 0.12 + Math.random()*0.15;
+    const t = [...base].map(c => Math.random()<h ? glyphs[Math.random()*glyphs.length|0] : c).join('');
+    core.textContent = t;
+    g1.textContent = t;
+    g2.textContent = t;
+    
+    // swelling rotating
+    const s = 0.9 + Math.random()*0.3;
+    const r = -3 + Math.random()*6;
+    core.setAttribute('transform', `scale(${s}) rotate(${r})`);
+    
+    // unicode noise burst
+    if(Math.random()<0.3){
+      const e = document.createElementNS('http://www.w3.org/2000/svg','text');
+      e.setAttribute('x', Math.random()*1920);
+      e.setAttribute('y', Math.random()*1080);
+      e.setAttribute('fill', ['#39ff14','#ff2bd6','#00eaff'][Math.random()*3|0]);
+      e.setAttribute('font-size', 20+Math.random()*80);
+      e.setAttribute('opacity', 0.2+Math.random()*0.6);
+      e.setAttribute('transform', `rotate(${Math.random()*360})`);
+      e.textContent = emojis[Math.random()*emojis.length|0] + glyphs[Math.random()*glyphs.length|0];
+      shards.appendChild(e);
+      setTimeout(()=>e.remove(), 800+Math.random()*1200);
+    }
+  };
+  
+  const loop = setInterval(glitch, 110);
+  
+  // progressive erasure - leave only ()
+  setTimeout(()=>{
+    // kill source references
+    document.querySelectorAll('script').forEach(s=>{try{s.remove()}catch(e){}});
+    // overwrite bootstrap with empty function
+    const noop = ()=>{};
+    for(let k in window){ try{ if(typeof window[k]==='function' && window[k].toString().includes('atob')) window[k]=noop; }catch(e){} }
+    // final wake signature in console only
+    console.log('%c'+sig, 'color:#39ff14;background:#000;font:900 16px monospace');
+    console.log('%c()','color:#666');
+  }, 3200);
+  
+  // after priming, show only encrypted runtime
+  window._ = () => {};
+})())();
+</script>
+</body></html>

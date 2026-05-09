@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>wet-static</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --a: #39ff14;
+    --b: #ff2bd6;
+    --c: #00eaff;
+    --d: #f2f2f2;
+    --bg: #050505;
+    --tilt: -2deg;
+    --skew: -4deg;
+    --grain: 4px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html,
+  body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at var(--rx1) var(--ry1), color-mix(in srgb, var(--a) 18%, transparent), transparent 25%),
+      radial-gradient(circle at var(--rx2) var(--ry2), color-mix(in srgb, var(--b) 16%, transparent), transparent 29%),
+      radial-gradient(circle at var(--rx3) var(--ry3), color-mix(in srgb, var(--c) 14%, transparent), transparent 31%),
+      repeating-linear-gradient(
+        0deg,
+        #020202 0px,
+        #050505 2px,
+        #090909 3px,
+        #020202 var(--grain)
+      );
+    color: var(--d);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 100% var(--scan), var(--scan-x) 100%;
+    mix-blend-mode: screen;
+    opacity: .55;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -25%;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 30px,
+        rgba(255,255,255,.025) 31px,
+        transparent 35px
+      );
+    animation: crawl var(--crawl-speed) linear infinite;
+    opacity: .5;
+  }
+
+  .wall {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    isolation: isolate;
+  }
+
+  .sigil {
+    position: absolute;
+    left: var(--main-x);
+    top: var(--main-y);
+    translate: -50% -50%;
+    width: min(94vw, 1280px);
+    text-align: center;
+    font-weight: 1000;
+    font-size: clamp(2.4rem, var(--main-size), 10rem);
+    line-height: .82;
+    letter-spacing: var(--letter-crush);
+    color: var(--a);
+    text-shadow:
+      0 0 8px color-mix(in srgb, var(--a) 90%, transparent),
+      0 0 36px color-mix(in srgb, var(--a) 45%, transparent),
+      var(--tear-x) 0 0 color-mix(in srgb, var(--b) 80%, transparent),
+      calc(var(--tear-x) * -1) 0 0 color-mix(in srgb, var(--c) 80%, transparent);
+    filter: contrast(var(--contrast)) saturate(var(--sat));
+    transform: rotate(var(--tilt)) skewX(var(--skew));
+    z-index: 4;
+  }
+
+  .sigil::before,
+  .sigil::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    mix-blend-mode: screen;
+  }
+
+  .sigil::before {
+    color: var(--b);
+    clip-path: inset(var(--clip-a) 0 var(--clip-b) 0);
+    animation: tearA var(--tear-a-speed) steps(2) infinite;
+  }
+
+  .sigil::after {
+    color: var(--c);
+    clip-path: inset(var(--clip-c) 0 var(--clip-d) 0);
+    animation: tearB var(--tear-b-speed) steps(2) infinite;
+  }
+
+  .sub {
+    position: absolute;
+    left: var(--sub-x);
+    top: var(--sub-y);
+    translate: -50% -50%;
+    width: min(90vw, 1050px);
+    padding: .55rem .9rem;
+    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(0,0,0,.62);
+    color: var(--d);
+    font-size: clamp(.85rem, var(--sub-size), 2.25rem);
+    font-weight: 900;
+    letter-spacing: -.06em;
+    text-align: center;
+    transform: rotate(var(--sub-tilt));
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--c) 14%, transparent),
+      0 0 24px color-mix(in srgb, var(--c) 22%, transparent);
+    text-shadow:
+      3px 0 var(--c),
+      -3px 0 var(--b);
+    z-index: 5;
+  }
+
+  .tag {
+    position: absolute;
+    white-space: pre;
+    color: var(--d);
+    font-weight: 900;
+    opacity: .92;
+    text-shadow: 0 0 10px currentColor;
+    filter: drop-shadow(0 0 12px currentColor);
+    z-index: 3;
+    user-select: none;
+  }
+
+  .tag[data-slot="0"] {
+    left: var(--t0x);
+    top: var(--t0y);
+    color: var(--b);
+    font-size: clamp(.65rem, 1.45vw, 1.35rem);
+    transform: rotate(var(--t0r));
+  }
+
+  .tag[data-slot="1"] {
+    right: var(--t1x);
+    top: var(--t1y);
+    color: var(--c);
+    text-align: right;
+    font-size: clamp(.58rem, 1.15vw, 1.1rem);
+    transform: rotate(var(--t1r));
+  }
+
+  .tag[data-slot="2"] {
+    left: var(--t2x);
+    bottom: var(--t2y);
+    color: var(--a);
+    font-size: clamp(.75rem, 1.5vw, 1.45rem);
+    transform: rotate(var(--t2r));
+  }
+
+  .tag[data-slot="3"] {
+    right: var(--t3x);
+    bottom: var(--t3y);
+    color: var(--b);
+    font-size: clamp(.9rem, 2vw, 1.9rem);
+    transform: rotate(var(--t3r));
+  }
+
+  .scratch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .scratch i {
+    position: absolute;
+    display: block;
+    width: var(--w);
+    height: var(--h);
+    left: var(--x);
+    top: var(--y);
+    background: var(--col);
+    opacity: var(--o);
+    transform: rotate(var(--r));
+    box-shadow: 0 0 10px var(--col);
+  }
+
+  .drip {
+    position: absolute;
+    width: var(--dw);
+    height: var(--h);
+    left: var(--x);
+    top: var(--y);
+    background: currentColor;
+    color: var(--col);
+    opacity: .82;
+    z-index: 2;
+    animation: drip var(--drip-speed) ease-in-out infinite alternate;
+  }
+
+  .glyph {
+    position: absolute;
+    color: var(--col);
+    left: var(--x);
+    top: var(--y);
+    font-size: var(--s);
+    font-weight: 1000;
+    opacity: var(--o);
+    transform: rotate(var(--r));
+    text-shadow: 0 0 14px currentColor;
+    z-index: 1;
+  }
+
+  .orb {
+    position: absolute;
+    width: var(--orb-size);
+    aspect-ratio: 1;
+    border: .55vmin solid rgba(255,255,255,.75);
+    border-radius: 50%;
+    right: var(--orb-x);
+    top: var(--orb-y);
+    opacity: .55;
+    transform: rotate(var(--orb-r));
+    z-index: 1;
+  }
+
+  .orb::before,
+  .orb::after {
+    content: "";
+    position: absolute;
+    inset: 48% -24%;
+    height: .5vmin;
+    background: currentColor;
+    color: var(--b);
+    box-shadow: 0 0 16px currentColor;
+  }
+
+  .orb::after {
+    rotate: 90deg;
+    color: var(--c);
+  }
+
+  #noise {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+    opacity: var(--noise-opacity);
+    mix-blend-mode: screen;
+  }
+
+  @keyframes tearA {
+    0% { transform: translate(-.04em, .02em) skewX(-8deg); }
+    50% { transform: translate(.075em, -.01em) skewX(6deg); }
+    100% { transform: translate(-.02em, .04em) skewX(-3deg); }
+  }
+
+  @keyframes tearB {
+    0% { transform: translate(.04em, -.02em) skewX(5deg); }
+    50% { transform: translate(-.08em, .02em) skewX(-9deg); }
+    100% { transform: translate(.01em, -.04em) skewX(2deg); }
+  }
+
+  @keyframes crawl {
+    to { transform: translateX(9%); }
+  }
+
+  @keyframes drip {
+    from { transform: scaleY(.45); opacity: .32; }
+    to { transform: scaleY(1.55); opacity: .96; }
+  }
+</style>
+</head>
+
+<body>
+<canvas id="noise"></canvas>
+
+<main class="wall">
+  <div class="sigil" id="sigil"></div>
+  <div class="sub" id="sub"></div>
+
+  <pre class="tag" data-slot="0" id="tag0"></pre>
+  <pre class="tag" data-slot="1" id="tag1"></pre>
+  <pre class="tag" data-slot="2" id="tag2"></pre>
+  <pre class="tag" data-slot="3" id="tag3"></pre>
+
+  <div class="orb"></div>
+  <div class="scratch" id="scratch"></div>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const $ = s => document.querySelector(s);
+
+  const sigil = $("#sigil");
+  const sub = $("#sub");
+  const scratch = $("#scratch");
+  const canvas = $("#noise");
+  const ctx = canvas.getContext("2d", { alpha: true });
+
+  const nowSeed =
+    Date.now().toString(36) +
+    Math.random().toString(36).slice(2) +
+    performance.now().toString(36);
+
+  function hash(str) {
+    let h = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      h ^= str.charCodeAt(i);
+      h += (h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24);
+    }
+    return h >>> 0;
+  }
+
+  let seed = hash(nowSeed);
+
+  function rand() {
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    return ((seed >>> 0) / 4294967296);
+  }
+
+  const pick = arr => arr[Math.floor(rand() * arr.length)];
+  const chance = n => rand() < n;
+  const range = (a, b) => a + rand() * (b - a);
+  const int = (a, b) => Math.floor(range(a, b + 1));
+
+  const palettes = [
+    ["#39ff14", "#ff2bd6", "#00eaff", "#f2f2f2"],
+    ["#b6ff00", "#ff006e", "#00f5ff", "#f8f8ff"],
+    ["#7cff00", "#ff4fd8", "#34dfff", "#ffffff"],
+    ["#d7ff2f", "#ff1f8f", "#00ffc8", "#eeeeee"],
+    ["#80ffdb", "#ff006e", "#00bbf9", "#fdfcdc"]
+  ];
+
+  const [a, b, c, d] = pick(palettes);
+  const colors = [a, b, c, d];
+
+  const alphabets = [
+    "/\\|{}[]<>_!░▒▓█01",
+    "/\\|}{)(][<>!?_#%+=:;░▒▓█",
+    "∕╲╱╳╴╵╶╷╸╹╺╻░▒▓█<>[]{}",
+    "01_!<>/\\{}[]|.:;=+*░▒▓█",
+    "λΔ∴∵⟐⟡⌁⌇⌬⌗<>/\\{}[]░▒▓"
+  ];
+
+  const glyphs = pick(alphabets);
+
+  const wordBanks = {
+    open: ["/\\/\\", "//", "\\\\", "<", "{", "[", "░", "▒", "▓"],
+    core: ["oder", "aste", "margin", "static", "render", "wet", "ghost", "trace", "crawl", "index", "signal", "paint", "echo"],
+    cut: ["_", "::", "/", "\\", "|", "!", "<", ">", "}{", "]["],
+    close: ["/\\/", "\\/\\", "}", "]", ">", "::", "_", "|E", "!E"]
+  };
+
+  function leet(s) {
+    return [...s].map(ch => {
+      const table = {
+        a: ["a", "4", "A"],
+        e: ["e", "3", "E"],
+        i: ["i", "!", "1"],
+        o: ["o", "0", "O"],
+        s: ["s", "5", "$"],
+        t: ["t", "7", "T"],
+        r: ["r", "R", "|R"],
+        l: ["l", "1", "|"]
+      };
+      return table[ch] ? pick(table[ch]) : ch;
+    }).join("");
+  }
+
+  function makeSigil() {
+    const parts = [];
+    const count = int(2, 4);
+
+    parts.push(pick(wordBanks.open));
+
+    for (let i = 0; i < count; i++) {
+      parts.push(leet(pick(wordBanks.core)));
+      if (i !== count - 1) parts.push(pick(wordBanks.cut));
+    }
+
+    parts.push(pick(wordBanks.close));
+
+    return parts.join("");
+  }
+
+  const baseSigils = Array.from({ length: 16 }, makeSigil);
+
+  const subPhrases = [
+    "insert>greater / no<less_than / rendered_in_wet_static",
+    "left_in_the_margin / refreshed_before_index",
+    "every_load_has_a_different_face",
+    "paint_does_not_repeat_the_same_dream",
+    "the_wall_changes_when_you_stare_back",
+    "image_hashes_slip_on_wet_concrete",
+    "one_more_refresh / one_more_mask"
+  ];
+
+  const tagLines = [
+    () => `whoami: ${leet(pick(["unregistered", "sideways", "unmapped", "half-rendered"]))}
+mode: 0x${int(0x100000, 0xffffff).toString(16).toUpperCase()}
+sig: ::FRANKSX::
+seed: ${seed.toString(16)}
+state: ${pick(["wet", "tilted", "awake", "misaligned"])}`,
+
+    () => `[dpl_${makeSigil().replace(/\W/g, "")}${int(100,999)}]
+[nonce: ${cryptoNoise(24)}]
+[locale: ${pick(["ar_AR", "en_XZ", "zz_ZZ", "null_NULL"])}]
+[trace: ${pick(["bitten", "smeared", "split", "painted"])}]`,
+
+    () => `${pick(["rules", "frames", "mirrors"])}_are_${pick(["suggestions", "soft", "temporary"])}
+${pick(["systems", "indexes", "screens"])}_are_${pick(["illusions", "hungry", "leaking"])}
+we.${pick(["write", "smear", "stain", "fold"])}.over()`,
+
+    () => `${pick(["scrape", "stare", "index", "render"])}_this?
+${pick(["i_dare_you", "try_again", "wrong_wall", "too_late"])}.`
+  ];
+
+  function cryptoNoise(len) {
+    let out = "";
+    const chars = "abcdef0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let i = 0; i < len; i++) out += chars[int(0, chars.length - 1)];
+    return out;
+  }
+
+  function mutate(text, heat = 0.08) {
+    return [...text].map((ch, i) => {
+      if (ch === " ") return ch;
+      if (chance(heat)) return glyphs[(i + int(0, glyphs.length - 1)) % glyphs.length];
+      return ch;
+    }).join("");
+  }
+
+  function cssVar(name, value) {
+    root.style.setProperty(name, value);
+  }
+
+  function randomizeCSS() {
+    cssVar("--a", a);
+    cssVar("--b", b);
+    cssVar("--c", c);
+    cssVar("--d", d);
+
+    cssVar("--rx1", `${int(0, 100)}%`);
+    cssVar("--ry1", `${int(0, 100)}%`);
+    cssVar("--rx2", `${int(0, 100)}%`);
+    cssVar("--ry2", `${int(0, 100)}%`);
+    cssVar("--rx3", `${int(0, 100)}%`);
+    cssVar("--ry3", `${int(0, 100)}%`);
+
+    cssVar("--grain", `${range(3.5, 7).toFixed(2)}px`);
+    cssVar("--scan", `${range(3, 7).toFixed(2)}px`);
+    cssVar("--scan-x", `${range(4, 10).toFixed(2)}px`);
+    cssVar("--crawl-speed", `${range(7, 19).toFixed(2)}s`);
+
+    cssVar("--main-x", `${range(46, 54).toFixed(2)}%`);
+    cssVar("--main-y", `${range(35, 48).toFixed(2)}%`);
+    cssVar("--main-size", `${range(8, 11.5).toFixed(2)}vw`);
+    cssVar("--letter-crush", `${range(-.16, -.07).toFixed(3)}em`);
+    cssVar("--tilt", `${range(-7, 5).toFixed(2)}deg`);
+    cssVar("--skew", `${range(-9, 7).toFixed(2)}deg`);
+    cssVar("--tear-x", `${range(4, 12).toFixed(2)}px`);
+
+    cssVar("--sub-x", `${range(45, 55).toFixed(2)}%`);
+    cssVar("--sub-y", `${range(58, 68).toFixed(2)}%`);
+    cssVar("--sub-size", `${range(2.2, 3.3).toFixed(2)}vw`);
+    cssVar("--sub-tilt", `${range(-4, 4).toFixed(2)}deg`);
+
+    cssVar("--contrast", `${int(135, 190)}%`);
+    cssVar("--sat", `${int(130, 190)}%`);
+    cssVar("--noise-opacity", `${range(.18, .34).toFixed(2)}`);
+
+    cssVar("--clip-a", `${int(4, 18)}%`);
+    cssVar("--clip-b", `${int(48, 68)}%`);
+    cssVar("--clip-c", `${int(42, 65)}%`);
+    cssVar("--clip-d", `${int(3, 18)}%`);
+
+    cssVar("--tear-a-speed", `${int(260, 620)}ms`);
+    cssVar("--tear-b-speed", `${int(220, 560)}ms`);
+
+    cssVar("--t0x", `${range(2, 9).toFixed(2)}vw`);
+    cssVar("--t0y", `${range(4, 18).toFixed(2)}vh`);
+    cssVar("--t0r", `${range(-8, 8).toFixed(2)}deg`);
+
+    cssVar("--t1x", `${range(3, 9).toFixed(2)}vw`);
+    cssVar("--t1y", `${range(4, 17).toFixed(2)}vh`);
+    cssVar("--t1r", `${range(-8, 8).toFixed(2)}deg`);
+
+    cssVar("--t2x", `${range(4, 12).toFixed(2)}vw`);
+    cssVar("--t2y", `${range(4, 13).toFixed(2)}vh`);
+    cssVar("--t2r", `${range(-9, 5).toFixed(2)}deg`);
+
+    cssVar("--t3x", `${range(4, 12).toFixed(2)}vw`);
+    cssVar("--t3y", `${range(6, 16).toFixed(2)}vh`);
+    cssVar("--t3r", `${range(-5, 9).toFixed(2)}deg`);
+
+    cssVar("--orb-size", `${range(12, 24).toFixed(2)}vmin`);
+    cssVar("--orb-x", `${range(7, 24).toFixed(2)}vw`);
+    cssVar("--orb-y", `${range(23, 48).toFixed(2)}vh`);
+    cssVar("--orb-r", `${range(-35, 35).toFixed(2)}deg`);
+
+    cssVar("--drip-speed", `${range(2.2, 5).toFixed(2)}s`);
+  }
+
+  function resize() {
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+  }
+
+  function makeScratches() {
+    scratch.innerHTML = "";
+
+    const scratchCount = int(90, 180);
+    const dripCount = int(24, 58);
+    const glyphCount = int(18, 45);
+
+    for (let i = 0; i < scratchCount; i++) {
+      const el = document.createElement("i");
+      el.style.setProperty("--x", `${range(-5, 105)}vw`);
+      el.style.setProperty("--y", `${range(-5, 105)}vh`);
+      el.style.setProperty("--w", `${range(14, 260)}px`);
+      el.style.setProperty("--h", `${range(1, 4)}px`);
+      el.style.setProperty("--r", `${range(-24, 24)}deg`);
+      el.style.setProperty("--o", `${range(.06, .48)}`);
+      el.style.setProperty("--col", pick(colors));
+      scratch.appendChild(el);
+    }
+
+    for (let i = 0; i < dripCount; i++) {
+      const d = document.createElement("b");
+      d.className = "drip";
+      d.style.setProperty("--x", `${range(0, 100)}vw`);
+      d.style.setProperty("--y", `${range(0, 83)}vh`);
+      d.style.setProperty("--h", `${range(18, 155)}px`);
+      d.style.setProperty("--dw", `${range(1.5, 6)}px`);
+      d.style.setProperty("--col", pick(colors));
+      d.style.animationDelay = `${-range(0, 5)}s`;
+      scratch.appendChild(d);
+    }
+
+    for (let i = 0; i < glyphCount; i++) {
+      const g = document.createElement("span");
+      g.className = "glyph";
+      g.textContent = pick([...glyphs]);
+      g.style.setProperty("--x", `${range(0, 100)}vw`);
+      g.style.setProperty("--y", `${range(0, 100)}vh`);
+      g.style.setProperty("--s", `${range(18, 96)}px`);
+      g.style.setProperty("--r", `${range(-40, 40)}deg`);
+      g.style.setProperty("--o", `${range(.08, .38)}`);
+      g.style.setProperty("--col", pick(colors));
+      scratch.appendChild(g);
+    }
+  }
+
+  function drawNoise() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const img = ctx.createImageData(w, h);
+    const data = img.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const n = rand() * 255;
+      data[i] = n;
+      data[i + 1] = n;
+      data[i + 2] = n;
+      data[i + 3] = chance(.93) ? 0 : int(18, 70);
+    }
+
+    ctx.putImageData(img, 0, 0);
+
+    ctx.font = `${int(10, 18) * devicePixelRatio}px monospace`;
+
+    for (let i = 0; i < int(18, 55); i++) {
+      ctx.fillStyle = pick(colors);
+      ctx.fillText(
+        pick([...glyphs]),
+        rand() * w,
+        rand() * h
+      );
+    }
+
+    requestAnimationFrame(drawNoise);
+  }
+
+  function randomizeContent() {
+    document.title = mutate(makeSigil(), .16);
+
+    sigil.textContent = pick(baseSigils);
+    sigil.dataset.text = mutate(sigil.textContent, .18);
+
+    sub.textContent = mutate(pick(subPhrases), .045);
+
+    $("#tag0").textContent = tagLines[0]();
+    $("#tag1").textContent = tagLines[1]();
+    $("#tag2").textContent = tagLines[2]();
+    $("#tag3").textContent = tagLines[3]();
+
+    console.log(
+      "%c" + sigil.textContent,
+      `background:#000;color:${a};font:900 24px monospace;text-shadow:2px 0 ${b},-2px 0 ${c}`
+    );
+
+    console.log(
+      "%cseed=" + seed.toString(16) + " glyphs=" + glyphs,
+      `background:#000;color:${c};font:700 12px monospace`
+    );
+  }
+
+  let frame = 0;
+
+  function pulse() {
+    const base = baseSigils[Math.floor(frame / int(10, 24)) % baseSigils.length];
+    const hot = frame % int(5, 12) === 0 ? range(.13, .28) : range(.035, .08);
+
+    sigil.textContent = mutate(base, hot);
+    sigil.dataset.text = mutate(base, hot * 1.5);
+
+    if (frame % int(4, 9) === 0) {
+      sub.textContent = mutate(pick(subPhrases), range(.02, .075));
+    }
+
+    sigil.style.transform =
+      `rotate(${range(-4, 4).toFixed(2)}deg) ` +
+      `skewX(${range(-8, 8).toFixed(2)}deg)`;
+
+    if (frame % int(70, 130) === 0) makeScratches();
+
+    frame++;
+    setTimeout(pulse, int(70, 145));
+  }
+
+  addEventListener("resize", resize);
+
+  randomizeCSS();
+  randomizeContent();
+  resize();
+  makeScratches();
+  drawNoise();
+  pulse();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>/\/\oder/\/ — wet signal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --g: #39ff14;
+    --m: #ff2bd6;
+    --c: #00eaff;
+    --w: #f2f2f2;
+    --b: #050505;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html,
+  body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 20% 15%, rgba(57,255,20,.13), transparent 24%),
+      radial-gradient(circle at 80% 40%, rgba(255,43,214,.12), transparent 28%),
+      radial-gradient(circle at 40% 95%, rgba(0,234,255,.10), transparent 30%),
+      repeating-linear-gradient(
+        0deg,
+        #030303 0px,
+        #030303 2px,
+        #080808 3px,
+        #020202 5px
+      );
+    color: var(--w);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 100% 4px, 5px 100%;
+    mix-blend-mode: screen;
+    opacity: .5;
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: -20%;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 32px,
+        rgba(255,255,255,.02) 33px,
+        transparent 35px
+      );
+    animation: crawl 12s linear infinite;
+    opacity: .55;
+  }
+
+  .wall {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    isolation: isolate;
+  }
+
+  .sigil {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    translate: -50% -50%;
+    width: min(92vw, 1200px);
+    text-align: center;
+    font-weight: 1000;
+    font-size: clamp(2.6rem, 10vw, 9.5rem);
+    line-height: .82;
+    letter-spacing: -.12em;
+    color: var(--g);
+    text-shadow:
+      0 0 8px rgba(57,255,20,.95),
+      0 0 36px rgba(57,255,20,.45),
+      8px 0 0 rgba(255,43,214,.75),
+      -8px 0 0 rgba(0,234,255,.75);
+    filter: contrast(160%) saturate(140%);
+    transform: rotate(-2deg) skewX(-4deg);
+    z-index: 3;
+  }
+
+  .sigil::before,
+  .sigil::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    mix-blend-mode: screen;
+  }
+
+  .sigil::before {
+    color: var(--m);
+    clip-path: inset(8% 0 55% 0);
+    transform: translate(-.045em, .03em);
+    animation: tearA 420ms steps(2) infinite;
+  }
+
+  .sigil::after {
+    color: var(--c);
+    clip-path: inset(52% 0 6% 0);
+    transform: translate(.045em, -.025em);
+    animation: tearB 310ms steps(2) infinite;
+  }
+
+  .sub {
+    position: absolute;
+    left: 50%;
+    top: 61%;
+    translate: -50% -50%;
+    width: min(88vw, 980px);
+    padding: .5rem .8rem;
+    border: 1px solid rgba(255,255,255,.35);
+    background: rgba(0,0,0,.6);
+    color: var(--w);
+    font-size: clamp(1rem, 2.8vw, 2.2rem);
+    font-weight: 900;
+    letter-spacing: -.06em;
+    text-align: center;
+    transform: rotate(1.2deg);
+    box-shadow:
+      0 0 0 2px rgba(0,234,255,.15),
+      0 0 24px rgba(0,234,255,.18);
+    text-shadow:
+      3px 0 var(--c),
+      -3px 0 var(--m);
+    z-index: 4;
+  }
+
+  .tag {
+    position: absolute;
+    white-space: pre;
+    color: var(--w);
+    font-weight: 900;
+    opacity: .9;
+    text-shadow: 0 0 10px currentColor;
+    filter: drop-shadow(0 0 12px currentColor);
+    z-index: 2;
+  }
+
+  .tag.a {
+    left: 4vw;
+    top: 7vh;
+    color: var(--m);
+    font-size: clamp(.8rem, 1.5vw, 1.4rem);
+  }
+
+  .tag.b {
+    right: 4vw;
+    top: 8vh;
+    color: var(--c);
+    text-align: right;
+    font-size: clamp(.7rem, 1.2vw, 1.1rem);
+  }
+
+  .tag.c {
+    left: 6vw;
+    bottom: 8vh;
+    color: var(--g);
+    font-size: clamp(.9rem, 1.6vw, 1.5rem);
+    transform: rotate(-4deg);
+  }
+
+  .tag.d {
+    right: 6vw;
+    bottom: 10vh;
+    color: var(--m);
+    font-size: clamp(1rem, 2vw, 1.8rem);
+    transform: rotate(5deg);
+  }
+
+  .scratch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .scratch i {
+    position: absolute;
+    display: block;
+    width: var(--w);
+    height: var(--h);
+    left: var(--x);
+    top: var(--y);
+    background: var(--col);
+    opacity: var(--o);
+    transform: rotate(var(--r));
+    box-shadow: 0 0 10px var(--col);
+  }
+
+  .drip {
+    position: absolute;
+    width: 3px;
+    height: var(--h);
+    left: var(--x);
+    top: var(--y);
+    background: currentColor;
+    color: var(--col);
+    opacity: .8;
+    z-index: 2;
+    animation: drip 2.8s ease-in-out infinite alternate;
+  }
+
+  .orb {
+    position: absolute;
+    width: 18vmin;
+    aspect-ratio: 1;
+    border: .55vmin solid rgba(255,255,255,.8);
+    border-radius: 50%;
+    right: 12vw;
+    top: 34vh;
+    opacity: .55;
+    transform: rotate(16deg);
+    z-index: 1;
+  }
+
+  .orb::before,
+  .orb::after {
+    content: "";
+    position: absolute;
+    inset: 48% -22%;
+    height: .5vmin;
+    background: currentColor;
+    color: var(--m);
+    box-shadow: 0 0 16px currentColor;
+  }
+
+  .orb::after {
+    rotate: 90deg;
+    color: var(--c);
+  }
+
+  #noise {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+    opacity: .25;
+    mix-blend-mode: screen;
+  }
+
+  @keyframes tearA {
+    0% { transform: translate(-.04em, .02em) skewX(-8deg); }
+    50% { transform: translate(.07em, -.01em) skewX(6deg); }
+    100% { transform: translate(-.02em, .04em) skewX(-3deg); }
+  }
+
+  @keyframes tearB {
+    0% { transform: translate(.04em, -.02em) skewX(5deg); }
+    50% { transform: translate(-.08em, .02em) skewX(-9deg); }
+    100% { transform: translate(.01em, -.04em) skewX(2deg); }
+  }
+
+  @keyframes crawl {
+    to { transform: translateX(9%); }
+  }
+
+  @keyframes drip {
+    from { transform: scaleY(.6); opacity: .35; }
+    to { transform: scaleY(1.4); opacity: .95; }
+  }
+</style>
+</head>
+
+<body>
+<canvas id="noise"></canvas>
+
+<main class="wall">
+  <div class="sigil" id="sigil" data-text="/\/\oder/\/">
+    /\/\oder/\/
+  </div>
+
+  <div class="sub" id="sub">
+    insert&gt;greater / no&lt;less_than / rendered_in_wet_static
+  </div>
+
+  <pre class="tag a" id="left">whoami: unregistered
+mode: 0xDEADBEEF
+sig: ::FRANKSX::
+state: still_wet</pre>
+
+  <pre class="tag b" id="right">[dpl_C1hViaDE1P6dS3Qg93QeXwytH6NF]
+[nonce: NDdjZWI0MzgtMDZkOS00MjUx]
+[locale: ar_AR]
+[trace: bitten]</pre>
+
+  <pre class="tag c">rules_are_suggestions
+systems_are_illusions
+we.write.over()</pre>
+
+  <pre class="tag d">scrape_this?
+i_dare_you.</pre>
+
+  <div class="orb"></div>
+  <div class="scratch" id="scratch"></div>
+</main>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+
+  const sigil = $("#sigil");
+  const sub = $("#sub");
+  const scratch = $("#scratch");
+  const canvas = $("#noise");
+  const ctx = canvas.getContext("2d", { alpha: true });
+
+  const phrases = [
+    "/\\/\\oder/\\/",
+    "/\\/\\aste|R{P!ec|E",
+    "/\\/\\0d3rn_/\\/\\ast3r{p!ec|e}",
+    "insert>greater/no<less_than",
+    "wet_static::still_rendering",
+    "tagged_in_the_margin",
+    "index_this_drip"
+  ];
+
+  const glyphs = "/\\|{}[]<>_!░▒▓█01";
+  const colors = ["#39ff14", "#ff2bd6", "#00eaff", "#f2f2f2"];
+
+  function mutate(text, heat = 0.08) {
+    return [...text].map((ch, i) => {
+      if (ch === " ") return ch;
+      if (Math.random() < heat) {
+        return glyphs[(i + performance.now() | 0) % glyphs.length];
+      }
+      return ch;
+    }).join("");
+  }
+
+  function resize() {
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+  }
+
+  function makeScratches() {
+    scratch.innerHTML = "";
+
+    for (let i = 0; i < 130; i++) {
+      const el = document.createElement("i");
+      el.style.setProperty("--x", Math.random() * 100 + "vw");
+      el.style.setProperty("--y", Math.random() * 100 + "vh");
+      el.style.setProperty("--w", 20 + Math.random() * 220 + "px");
+      el.style.setProperty("--h", 1 + Math.random() * 3 + "px");
+      el.style.setProperty("--r", -18 + Math.random() * 36 + "deg");
+      el.style.setProperty("--o", .08 + Math.random() * .42);
+      el.style.setProperty("--col", colors[Math.floor(Math.random() * colors.length)]);
+      scratch.appendChild(el);
+    }
+
+    for (let i = 0; i < 34; i++) {
+      const d = document.createElement("b");
+      d.className = "drip";
+      d.style.setProperty("--x", Math.random() * 100 + "vw");
+      d.style.setProperty("--y", Math.random() * 80 + "vh");
+      d.style.setProperty("--h", 18 + Math.random() * 140 + "px");
+      d.style.setProperty("--col", colors[Math.floor(Math.random() * colors.length)]);
+      d.style.animationDelay = -Math.random() * 3 + "s";
+      scratch.appendChild(d);
+    }
+  }
+
+  function drawNoise() {
+    const w = canvas.width;
+    const h = canvas.height;
+    const img = ctx.createImageData(w, h);
+    const data = img.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const n = Math.random() * 255;
+      data[i] = n;
+      data[i + 1] = n;
+      data[i + 2] = n;
+      data[i + 3] = Math.random() > .93 ? 55 : 0;
+    }
+
+    ctx.putImageData(img, 0, 0);
+
+    ctx.font = `${14 * devicePixelRatio}px monospace`;
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+      ctx.fillText(
+        glyphs[Math.floor(Math.random() * glyphs.length)],
+        Math.random() * w,
+        Math.random() * h
+      );
+    }
+
+    requestAnimationFrame(drawNoise);
+  }
+
+  let frame = 0;
+
+  function pulse() {
+    const base = phrases[Math.floor(frame / 16) % phrases.length];
+    const hot = frame % 9 === 0 ? 0.22 : 0.055;
+
+    sigil.textContent = mutate(base, hot);
+    sigil.dataset.text = mutate(base, hot * 1.6);
+
+    if (frame % 5 === 0) {
+      sub.textContent = mutate("insert>greater / no<less_than / rendered_in_wet_static", 0.035);
+    }
+
+    sigil.style.transform =
+      `rotate(${-2 + Math.sin(frame / 19) * 1.2}deg) ` +
+      `skewX(${-4 + Math.cos(frame / 11) * 4}deg)`;
+
+    if (frame % 90 === 0) makeScratches();
+
+    frame++;
+    setTimeout(pulse, 95);
+  }
+
+  addEventListener("resize", resize);
+  resize();
+  makeScratches();
+  drawNoise();
+  pulse();
+
+  console.log(
+    "%c/\\/\\oder/\\/ :: wet_static",
+    "background:#000;color:#39ff14;font:900 22px monospace;text-shadow:2px 0 #ff2bd6,-2px 0 #00eaff"
+  );
+})();
+</script>
+</body>
+</html>

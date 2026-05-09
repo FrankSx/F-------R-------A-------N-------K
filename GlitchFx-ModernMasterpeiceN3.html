@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>volatile-wall</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#020202;color:#eee;font-family:ui-monospace,monospace}
+#stage,#ink,#static{position:fixed;inset:0;width:100%;height:100%}
+#stage{z-index:1}
+#ink{z-index:2;mix-blend-mode:screen;pointer-events:none}
+#static{z-index:3;mix-blend-mode:screen;opacity:.28;pointer-events:none}
+.panel{
+  position:fixed;
+  z-index:4;
+  max-width:44vw;
+  white-space:pre-wrap;
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:-.05em;
+  color:var(--col);
+  left:var(--x);
+  top:var(--y);
+  rotate:var(--r);
+  font-size:var(--s);
+  text-shadow:0 0 10px currentColor,3px 0 var(--ghostA),-3px 0 var(--ghostB);
+  opacity:var(--o);
+  filter:contrast(140%) saturate(150%);
+}
+#core{
+  position:fixed;
+  z-index:5;
+  left:50%;
+  top:45%;
+  translate:-50% -50%;
+  width:94vw;
+  text-align:center;
+  font-size:clamp(2.7rem,10.5vw,10rem);
+  font-weight:1000;
+  line-height:.78;
+  letter-spacing:-.13em;
+  color:var(--a);
+  text-shadow:0 0 8px var(--a),0 0 42px var(--a),9px 0 var(--b),-9px 0 var(--c);
+  rotate:var(--tilt);
+  transform:skewX(var(--skew));
+}
+#core:before,#core:after{
+  content:attr(data-ghost);
+  position:absolute;
+  inset:0;
+  overflow:hidden;
+  mix-blend-mode:screen;
+}
+#core:before{color:var(--b);clip-path:inset(6% 0 58% 0);animation:a .34s steps(2) infinite}
+#core:after{color:var(--c);clip-path:inset(54% 0 5% 0);animation:b .27s steps(2) infinite}
+#ribbon{
+  position:fixed;
+  z-index:6;
+  left:50%;
+  top:64%;
+  translate:-50% -50%;
+  width:min(92vw,1100px);
+  padding:.7rem 1rem;
+  background:rgba(0,0,0,.72);
+  border:1px solid rgba(255,255,255,.35);
+  font-size:clamp(.9rem,2.4vw,2.1rem);
+  font-weight:1000;
+  text-align:center;
+  color:#fff;
+  text-shadow:3px 0 var(--c),-3px 0 var(--b);
+  rotate:var(--ribbonTilt);
+}
+.scan{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:8;
+  background:
+    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:100% 5px,7px 100%;
+}
+@keyframes a{50%{translate:10px -2px;transform:skewX(9deg)}}
+@keyframes b{50%{translate:-10px 3px;transform:skewX(-10deg)}}
+</style>
+</head>
+<body>
+<canvas id="stage"></canvas>
+<canvas id="ink"></canvas>
+<canvas id="static"></canvas>
+<div id="core"></div>
+<div id="ribbon"></div>
+<div class="scan"></div>
+
+<script>
+(() => {
+  const DNA = [
+    "dpl_C1hViaDE1P6dS3Qg93QeXwytH6NF",
+    "YTUyMWMwZGEtNDY3NC00NWEyLWI2NDYtNjk2MmVkZGEzZGYw",
+    "self.__next_f.push([1,",
+    "HTTPAccessFallbackBoundary",
+    "ViewportBoundary",
+    "MetadataBoundary",
+    "ArtifactShareHeader",
+    "__ECTO_I18N__",
+    "__ECTO_COMPOSER_RENDER_TIME__",
+    "ar_AR.2964d224.json",
+    "visualcompletion=loading-state",
+    "data-ignore-initial-load=true",
+    "/_next/static/chunks/0~hhobclj-pjr.js",
+    "/_next/static/chunks/0myd_9hkdyvzv.js",
+    "/_next/static/chunks/turbopack-03pw2292r-b-y.js",
+    "المحتوى من إنشاء المستخدم ولم يتم التحقق منه",
+    "تسجيل الدخول",
+    "مشاركة"
+  ];
+
+  let seed = hash(Date.now()+":"+Math.random()+":"+performance.now()+":"+DNA.join("|"));
+
+  function hash(s){
+    let h=2166136261;
+    for(let i=0;i<s.length;i++){
+      h^=s.charCodeAt(i);
+      h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);
+    }
+    return h>>>0;
+  }
+
+  function rnd(){
+    seed^=seed<<13;
+    seed^=seed>>>17;
+    seed^=seed<<5;
+    return (seed>>>0)/4294967296;
+  }
+
+  const pick=a=>a[Math.floor(rnd()*a.length)];
+  const range=(a,b)=>a+rnd()*(b-a);
+  const int=(a,b)=>Math.floor(range(a,b+1));
+  const chance=n=>rnd()<n;
+
+  const palettes=[
+    ["#39ff14","#ff2bd6","#00eaff","#f2f2f2"],
+    ["#b6ff00","#ff006e","#00f5ff","#ffffff"],
+    ["#80ffdb","#ff006e","#00bbf9","#fdfcdc"],
+    ["#d7ff2f","#ff1f8f","#00ffc8","#eeeeee"]
+  ];
+
+  const glyphs=[
+    ..."/\\|{}[]<>_!░▒▓█01",
+    ..."∕╲╱╳╴╵╶╷╸╹╺╻",
+    ..."λΔ∴∵⟐⟡⌁⌇⌬⌗"
+  ];
+
+  const [A,B,C,D]=pick(palettes);
+  document.documentElement.style.setProperty("--a",A);
+  document.documentElement.style.setProperty("--b",B);
+  document.documentElement.style.setProperty("--c",C);
+  document.documentElement.style.setProperty("--tilt",range(-7,5)+"deg");
+  document.documentElement.style.setProperty("--skew",range(-9,8)+"deg");
+  document.documentElement.style.setProperty("--ribbonTilt",range(-4,4)+"deg");
+
+  const canvases = ["stage","ink","static"].map(id => {
+    const c=document.getElementById(id);
+    const x=c.getContext("2d",{alpha:true});
+    return [c,x];
+  });
+
+  function resize(){
+    for(const [c] of canvases){
+      c.width=innerWidth*devicePixelRatio;
+      c.height=innerHeight*devicePixelRatio;
+    }
+  }
+
+  function corrupt(s, heat=.08){
+    return [...s].map(ch=>{
+      if(ch===" " && chance(.3)) return "_";
+      if(chance(heat)) return pick(glyphs);
+      if(ch==="a"&&chance(.2))return"4";
+      if(ch==="e"&&chance(.2))return"3";
+      if(ch==="i"&&chance(.2))return"!";
+      if(ch==="o"&&chance(.2))return"0";
+      if(ch==="s"&&chance(.2))return"$";
+      if(ch==="t"&&chance(.2))return"7";
+      return ch;
+    }).join("");
+  }
+
+  function makeFace(){
+    const a=pick(["/\\/\\","//","{","<","░"]);
+    const b=corrupt(pick(["oder","artifact","nonce","chunk","trace","render","orbit","fallback"]),.18);
+    const c=pick(["/\\/","::","_","/","\\","|","}{"]);
+    const d=corrupt(pick(["master","payload","boundary","ghost","static","flight","shell"]),.18);
+    const e=pick(["{P!EC|E}","[wet]","<push>","::","/\\/"]);
+    return a+b+c+d+e;
+  }
+
+  function panelText(){
+    const rows=int(3,7);
+    let out=[];
+    for(let i=0;i<rows;i++){
+      let line=pick(DNA);
+      if(chance(.5)) line="["+int(0,9)+"] "+line;
+      if(chance(.3)) line=line+" // "+pick(["pending","molting","split","wet","sideways"]);
+      out.push(corrupt(line,.08));
+    }
+    return out.join("\n");
+  }
+
+  function makePanels(){
+    document.querySelectorAll(".panel").forEach(x=>x.remove());
+    for(let i=0;i<int(12,26);i++){
+      const el=document.createElement("pre");
+      el.className="panel";
+      el.textContent=panelText();
+      el.style.setProperty("--x",range(-4,82)+"vw");
+      el.style.setProperty("--y",range(-2,90)+"vh");
+      el.style.setProperty("--r",range(-14,14)+"deg");
+      el.style.setProperty("--s",range(.62,1.35)+"rem");
+      el.style.setProperty("--o",range(.34,.88));
+      el.style.setProperty("--col",pick([A,B,C,D]));
+      el.style.setProperty("--ghostA",B);
+      el.style.setProperty("--ghostB",C);
+      document.body.appendChild(el);
+    }
+  }
+
+  function drawStage(){
+    const [c,x]=canvases[0];
+    const w=c.width,h=c.height;
+    x.clearRect(0,0,w,h);
+    x.fillStyle="#020202";
+    x.fillRect(0,0,w,h);
+
+    for(let i=0;i<220;i++){
+      x.strokeStyle=pick([A,B,C,D]);
+      x.globalAlpha=range(.05,.35);
+      x.lineWidth=range(1,5)*devicePixelRatio;
+      x.beginPath();
+      x.moveTo(range(-.1*w,1.1*w),range(-.1*h,1.1*h));
+      x.lineTo(range(-.1*w,1.1*w),range(-.1*h,1.1*h));
+      x.stroke();
+    }
+
+    for(let i=0;i<60;i++){
+      x.fillStyle=pick([A,B,C,D]);
+      x.globalAlpha=range(.08,.35);
+      x.font=`${int(20,96)*devicePixelRatio}px monospace`;
+      x.fillText(pick(glyphs),range(0,w),range(0,h));
+    }
+
+    x.globalAlpha=1;
+  }
+
+  function drawInk(){
+    const [c,x]=canvases[1];
+    const w=c.width,h=c.height;
+
+    x.fillStyle="rgba(0,0,0,.08)";
+    x.fillRect(0,0,w,h);
+
+    for(let i=0;i<10;i++){
+      x.fillStyle=pick([A,B,C]);
+      x.globalAlpha=range(.08,.22);
+      const px=range(0,w), py=range(0,h);
+      x.beginPath();
+      x.arc(px,py,range(20,160)*devicePixelRatio,0,Math.PI*2);
+      x.fill();
+    }
+
+    x.globalAlpha=1;
+    requestAnimationFrame(drawInk);
+  }
+
+  function drawStatic(){
+    const [c,x]=canvases[2];
+    const w=c.width,h=c.height;
+    const img=x.createImageData(w,h);
+    const d=img.data;
+    for(let i=0;i<d.length;i+=4){
+      const n=rnd()*255;
+      d[i]=n;d[i+1]=n;d[i+2]=n;
+      d[i+3]=chance(.935)?0:int(20,80);
+    }
+    x.putImageData(img,0,0);
+    requestAnimationFrame(drawStatic);
+  }
+
+  const faces=Array.from({length:24},makeFace);
+  let frame=0;
+
+  function pulse(){
+    const face=faces[Math.floor(frame/int(8,20))%faces.length];
+    const hot=frame%int(5,11)===0?range(.14,.32):range(.03,.085);
+
+    core.textContent=corrupt(face,hot);
+    core.dataset.ghost=corrupt(face,hot*1.7);
+
+    if(frame%int(4,9)===0){
+      ribbon.textContent=corrupt(pick([
+        "self.__next_f.push([1, wet_static])",
+        "dpl shifts / nonce molts / trace keeps blinking",
+        "artifact boundary rendered before meaning",
+        "loading-state chews its own shadow",
+        "locale falls sideways / shell keeps spinning",
+        "one refresh / another face / same wall",
+        "viewport boundary leaking through the paint"
+      ]),.065);
+    }
+
+    if(frame%int(70,130)===0){
+      drawStage();
+      makePanels();
+    }
+
+    document.title=corrupt(face,.13);
+
+    frame++;
+    setTimeout(pulse,int(65,130));
+  }
+
+  addEventListener("resize",()=>{resize();drawStage();});
+  resize();
+  drawStage();
+  makePanels();
+  drawInk();
+  drawStatic();
+  pulse();
+
+  console.log("%cvolatile-wall seed="+seed.toString(16),`background:#000;color:${A};font:900 18px monospace;text-shadow:2px 0 ${B},-2px 0 ${C}`);
+})();
+</script>
+</body>
+</html>

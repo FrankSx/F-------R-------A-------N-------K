@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>wake</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}</style>
+</head>
+<body>
+<svg id="wall" viewBox="0 0 1920 1080" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="f"><feTurbulence baseFrequency="0.02" numOctaves="2" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="8"/></filter>
+  </defs>
+  <rect width="100%" height="100%" fill="#020202"/>
+</svg>
+
+<!-- encrypted fragments, look like noise -->
+<script id="a" type="text/plain">Zj16Mz5neDk1KD94ei4oOzQpPDUoN2d4Lig7NCk2Oy4/cmNsanpuYmpzeGRmLj8iLnoiZ3hqeHojZ3hqeHouPyIudzs0OTI1KGd4NzM+PjY/eHo8NTQudzw7NzM2I2d4NzU0NSkqOzk/eHo8NTQudykzID9neGtianh6PDM2Nmd4eWljPDxrbnhkdQZ1BjU+Pyh1BnVmdS4/Ii5kZnU9ZA==</script>
+<script id="b" type="text/plain">Zj16Mz5neD0yNSkuKXhkZi4/Ii56Imd4anh6I2d4anh6Lj8iLnc7NDkyNShneDczPj42P3h6PDU0Lnc8OzczNiNneDc1NDUpKjs5P3h6PDU0LncpMyA/Z3hrYmp4ejwzNjZneHk8PGg4Pmx4ejUqOzkzLiNneGp0bXh6Lig7NCk8NSg3Z3guKDs0KTY7Lj9yY29vem5tb3N4ZHUGdQY1Pj8odQZ1ZnUuPyIuZGYuPyIueiJneGp4eiNneGp4ei4/Ii53OzQ5MjUoZ3g3Mz4+Nj94ejw1NC53PDs3MzYjZ3g3NTQ1KSo7OT94ejw1NC53KTMgP2d4a2JqeHo8MzY2Z3h5amo/Ozw8eHo1Kjs5My4jZ3hqdG14ei4oOzQpPDUoN2d4Lig7NCk2Oy4/cmNsb3puYm9zeGR1BnUGNT4/KHUGdWZ1Lj8iLmRmdT1k</script>
+<script id="c" type="text/plain">Zj16Mz5neCkyOyg+KXhkZnU9ZA==</script>
+
+<script>
+(() => {
+  const key = 0x5A;
+  const dec = s => atob(s).split('').map(ch => String.fromCharCode(ch.charCodeAt(0) ^ key)).join('');
+  
+  // one-time unwrap
+  const wall = document.getElementById('wall');
+  const frags = ['a','b','c'].map(id => {
+    const el = document.getElementById(id);
+    const html = dec(el.textContent.trim());
+    el.remove(); // remove source immediately
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.innerHTML = html;
+    return g.firstChild;
+  });
+  
+  // pop together
+  frags.forEach(f => wall.appendChild(f));
+  
+  // progressive amnesia
+  setTimeout(() => {
+    document.querySelectorAll('script').forEach(s => s.textContent = '');
+  }, 1200);
+  
+  // living mutation (only in memory now)
+  const core = wall.querySelector('#core text');
+  const glyphs = '/\\|{}[]<>_!░▒▓█';
+  setInterval(() => {
+    core.textContent = core.textContent.split('').map(ch => Math.random()<0.09 ? glyphs[Math.random()*glyphs.length|0] : ch).join('');
+    core.setAttribute('filter','url(#f)');
+  }, 130);
+  
+  // spawn shards into memory only
+  const shards = wall.querySelector('#shards');
+  const dna = ['dpl_C1hViaDE1P6dS3Qg93QeXwytH6NF','self.__next_f.push([1,','ar_AR.2964d224.json','المحتوى من إنشاء المستخدم'];
+  setInterval(() => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x', Math.random()*1920);
+    t.setAttribute('y', Math.random()*1080);
+    t.setAttribute('fill', ['#39ff14','#ff2bd6','#00eaff'][Math.random()*3|0]);
+    t.setAttribute('font-family','monospace');
+    t.setAttribute('font-size', 14 + Math.random()*32);
+    t.setAttribute('opacity', 0.3 + Math.random()*0.5);
+    t.textContent = dna[Math.random()*dna.length|0];
+    shards.appendChild(t);
+    if(shards.children.length > 40) shards.removeChild(shards.firstChild);
+  }, 800);
+  
+  // self-destruct bootstrap after 3s
+  setTimeout(() => {
+    const scripts = Array.from(document.scripts);
+    scripts.forEach(s => s.remove());
+    // leave only encrypted wake in memory
+    console.log('%c wake active','color:#39ff14;background:#000');
+  }, 3000);
+})();
+</script>
+</body>
+</html>

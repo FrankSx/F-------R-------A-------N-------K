@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>artifact-corpse</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{
+    --a:#39ff14;
+    --b:#ff2bd6;
+    --c:#00eaff;
+    --d:#f2f2f2;
+    --bg:#030303;
+  }
+
+  *{box-sizing:border-box}
+
+  html,body{
+    margin:0;
+    height:100%;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at var(--x1) var(--y1), color-mix(in srgb,var(--a) 18%,transparent), transparent 24%),
+      radial-gradient(circle at var(--x2) var(--y2), color-mix(in srgb,var(--b) 16%,transparent), transparent 29%),
+      radial-gradient(circle at var(--x3) var(--y3), color-mix(in srgb,var(--c) 13%,transparent), transparent 31%),
+      repeating-linear-gradient(0deg,#020202 0,#050505 2px,#090909 3px,#010101 6px);
+    color:var(--d);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+
+  body:before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:
+      linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:100% var(--scan), var(--scanx) 100%;
+    mix-blend-mode:screen;
+    opacity:.6;
+    z-index:30;
+  }
+
+  body:after{
+    content:"";
+    position:fixed;
+    inset:-20%;
+    pointer-events:none;
+    background:
+      repeating-linear-gradient(
+        90deg,
+        transparent 0 26px,
+        rgba(255,255,255,.025) 27px,
+        transparent 32px
+      );
+    animation:crawl var(--crawl) linear infinite;
+    opacity:.55;
+    z-index:20;
+  }
+
+  #noise{
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100%;
+    pointer-events:none;
+    z-index:40;
+    opacity:.25;
+    mix-blend-mode:screen;
+  }
+
+  .wall{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    isolation:isolate;
+  }
+
+  .core{
+    position:absolute;
+    left:50%;
+    top:42%;
+    translate:-50% -50%;
+    width:min(94vw,1280px);
+    text-align:center;
+    font-size:clamp(2.5rem,10vw,10rem);
+    font-weight:1000;
+    line-height:.78;
+    letter-spacing:-.13em;
+    color:var(--a);
+    transform:rotate(var(--tilt)) skewX(var(--skew));
+    filter:contrast(180%) saturate(160%);
+    text-shadow:
+      0 0 8px var(--a),
+      0 0 42px color-mix(in srgb,var(--a) 55%,transparent),
+      8px 0 0 color-mix(in srgb,var(--b) 75%,transparent),
+      -8px 0 0 color-mix(in srgb,var(--c) 75%,transparent);
+    z-index:10;
+  }
+
+  .core:before,
+  .core:after{
+    content:attr(data-ghost);
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    mix-blend-mode:screen;
+    pointer-events:none;
+  }
+
+  .core:before{
+    color:var(--b);
+    clip-path:inset(8% 0 58% 0);
+    animation:tearA 360ms steps(2) infinite;
+  }
+
+  .core:after{
+    color:var(--c);
+    clip-path:inset(55% 0 5% 0);
+    animation:tearB 290ms steps(2) infinite;
+  }
+
+  .sub{
+    position:absolute;
+    left:50%;
+    top:62%;
+    translate:-50% -50%;
+    width:min(92vw,1080px);
+    padding:.6rem 1rem;
+    background:rgba(0,0,0,.68);
+    border:1px solid rgba(255,255,255,.36);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb,var(--c) 16%,transparent),
+      0 0 28px color-mix(in srgb,var(--c) 22%,transparent);
+    color:var(--d);
+    font-size:clamp(.8rem,2.6vw,2.15rem);
+    font-weight:1000;
+    letter-spacing:-.055em;
+    text-align:center;
+    transform:rotate(var(--subtilt));
+    text-shadow:3px 0 var(--c),-3px 0 var(--b);
+    z-index:12;
+  }
+
+  .shard{
+    position:absolute;
+    white-space:pre;
+    color:var(--col);
+    font-weight:900;
+    font-size:var(--size);
+    left:var(--x);
+    top:var(--y);
+    max-width:42vw;
+    opacity:var(--op);
+    transform:rotate(var(--r));
+    text-shadow:0 0 12px currentColor;
+    filter:drop-shadow(0 0 8px currentColor);
+    z-index:8;
+    user-select:none;
+  }
+
+  .scratch{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+    z-index:4;
+  }
+
+  .scratch i{
+    position:absolute;
+    left:var(--x);
+    top:var(--y);
+    width:var(--w);
+    height:var(--h);
+    background:var(--col);
+    opacity:var(--op);
+    transform:rotate(var(--r));
+    box-shadow:0 0 9px var(--col);
+  }
+
+  .scratch b{
+    position:absolute;
+    left:var(--x);
+    top:var(--y);
+    width:var(--dw);
+    height:var(--dh);
+    background:var(--col);
+    opacity:.75;
+    animation:drip var(--spd) ease-in-out infinite alternate;
+  }
+
+  @keyframes crawl{to{transform:translateX(9%)}}
+
+  @keyframes tearA{
+    0%{transform:translate(-.04em,.02em) skewX(-8deg)}
+    50%{transform:translate(.08em,-.01em) skewX(7deg)}
+    100%{transform:translate(-.02em,.04em) skewX(-3deg)}
+  }
+
+  @keyframes tearB{
+    0%{transform:translate(.04em,-.02em) skewX(5deg)}
+    50%{transform:translate(-.09em,.02em) skewX(-9deg)}
+    100%{transform:translate(.01em,-.04em) skewX(2deg)}
+  }
+
+  @keyframes drip{
+    from{transform:scaleY(.42);opacity:.28}
+    to{transform:scaleY(1.55);opacity:.95}
+  }
+</style>
+</head>
+<body>
+<canvas id="noise"></canvas>
+
+<main class="wall">
+  <div class="core" id="core"></div>
+  <div class="sub" id="sub"></div>
+  <div class="scratch" id="scratch"></div>
+</main>
+
+<script>
+(() => {
+  const root = document.documentElement;
+  const wall = document.querySelector(".wall");
+  const core = document.querySelector("#core");
+  const sub = document.querySelector("#sub");
+  const scratch = document.querySelector("#scratch");
+  const canvas = document.querySelector("#noise");
+  const ctx = canvas.getContext("2d", { alpha:true });
+
+  const sourceDNA = [
+    "dpl_C1hViaDE1P6dS3Qg93QeXwytH6NF",
+    "YTUyMWMwZGEtNDY3NC00NWEyLWI2NDYtNjk2MmVkZGEzZGYw",
+    "NDdjZWI0MzgtMDZkOS00MjUxLWIyNDktZmY3MDcyNWYwOGUx",
+    "self.__next_f.push([1,",
+    "HTTPAccessFallbackBoundary",
+    "ViewportBoundary",
+    "MetadataBoundary",
+    "composer-render-mark",
+    "__ECTO_I18N__",
+    "__ECTO_COMPOSER_RENDER_TIME__",
+    "ar_AR.2964d224.json",
+    "sentry-trace",
+    "visualcompletion=loading-state",
+    "data-ignore-initial-load=true",
+    "radix-_R_qanpfiv5udb_",
+    "/_next/static/chunks/0~hhobclj-pjr.js",
+    "/_next/static/chunks/0myd_9hkdyvzv.js",
+    "/_next/static/chunks/0ankfclxepc-n.js",
+    "/_next/static/chunks/0bqai81h1gkxm.js",
+    "/_next/static/chunks/turbopack-03pw2292r-b-y.js",
+    "المحتوى من إنشاء المستخدم ولم يتم التحقق منه",
+    "تسجيل الدخول",
+    "مشاركة",
+    "Loading"
+  ];
+
+  const palettes = [
+    ["#39ff14","#ff2bd6","#00eaff","#f2f2f2"],
+    ["#b6ff00","#ff006e","#00f5ff","#fff"],
+    ["#80ffdb","#ff006e","#00bbf9","#fdfcdc"],
+    ["#d7ff2f","#ff1f8f","#00ffc8","#eee"],
+    ["#7cff00","#ff4fd8","#34dfff","#fff"]
+  ];
+
+  const glyphSets = [
+    "/\\|{}[]<>_!░▒▓█01",
+    ")(][}{<>/\\!?_#%+=:;░▒▓█",
+    "∕╲╱╳╴╵╶╷╸╹╺╻░▒▓█<>[]{}",
+    "01_!<>/\\{}[]|.:;=+*░▒▓█",
+    "λΔ∴∵⟐⟡⌁⌇⌬⌗<>/\\{}[]░▒▓"
+  ];
+
+  let seed = hash(
+    Date.now().toString(36) +
+    Math.random().toString(36) +
+    performance.now().toString(36) +
+    sourceDNA.join("")
+  );
+
+  function hash(s){
+    let h = 2166136261;
+    for(let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h += (h<<1) + (h<<4) + (h<<7) + (h<<8) + (h<<24);
+    }
+    return h >>> 0;
+  }
+
+  function rand(){
+    seed ^= seed << 13;
+    seed ^= seed >>> 17;
+    seed ^= seed << 5;
+    return (seed >>> 0) / 4294967296;
+  }
+
+  const pick = a => a[Math.floor(rand() * a.length)];
+  const range = (a,b) => a + rand() * (b-a);
+  const int = (a,b) => Math.floor(range(a,b+1));
+  const chance = n => rand() < n;
+
+  const [A,B,C,D] = pick(palettes);
+  const glyphs = pick(glyphSets);
+  const colors = [A,B,C,D];
+
+  function css(k,v){ root.style.setProperty(k,v); }
+
+  function leak(s){
+    return [...s].map((ch,i) => {
+      if(ch === " ") return chance(.2) ? "_" : " ";
+      if(ch === "/" && chance(.3)) return "\\";
+      if(ch === "_" && chance(.35)) return pick(["-","~","::","_"]);
+      if(ch === "-" && chance(.25)) return pick(["_","~","/"]);
+      if(ch === "." && chance(.35)) return pick([":","·","/"]);
+      if(ch === "=" && chance(.4)) return pick([":","::","=>"]);
+      if(ch.match(/[aeiostrl]/i) && chance(.18)){
+        return ({
+          a:["4","A","λ"],
+          e:["3","E"],
+          i:["!","1","I"],
+          o:["0","O"],
+          s:["5","$","S"],
+          t:["7","T"],
+          r:["R","|R"],
+          l:["1","|","L"]
+        }[ch.toLowerCase()] || [ch])[int(0,2)] || ch;
+      }
+      if(chance(.045)) return pick([...glyphs]);
+      return ch;
+    }).join("");
+  }
+
+  function sigil(){
+    const chunks = [
+      "/\\/\\",
+      leak(pick(["oder","artifact","nonce","chunk","render","orbit","trace","fallback"])),
+      pick(["/\\/","::","_","/","\\","|","}{"]),
+      leak(pick(["master","payload","boundary","ghost","static","flight","shell"])),
+      pick(["{P!EC|E}","[wet]","<push>","::","/\\/"])
+    ];
+    return chunks.join("");
+  }
+
+  function configure(){
+    css("--a",A); css("--b",B); css("--c",C); css("--d",D);
+
+    css("--x1",int(0,100)+"%");
+    css("--y1",int(0,100)+"%");
+    css("--x2",int(0,100)+"%");
+    css("--y2",int(0,100)+"%");
+    css("--x3",int(0,100)+"%");
+    css("--y3",int(0,100)+"%");
+
+    css("--scan",range(3,7).toFixed(2)+"px");
+    css("--scanx",range(4,10).toFixed(2)+"px");
+    css("--crawl",range(7,18).toFixed(2)+"s");
+    css("--tilt",range(-7,5).toFixed(2)+"deg");
+    css("--skew",range(-9,8).toFixed(2)+"deg");
+    css("--subtilt",range(-4,4).toFixed(2)+"deg");
+  }
+
+  function resize(){
+    canvas.width = innerWidth * devicePixelRatio;
+    canvas.height = innerHeight * devicePixelRatio;
+  }
+
+  function makeScratches(){
+    scratch.innerHTML = "";
+
+    for(let i=0;i<int(100,190);i++){
+      const el = document.createElement("i");
+      el.style.setProperty("--x",range(-5,105)+"vw");
+      el.style.setProperty("--y",range(-5,105)+"vh");
+      el.style.setProperty("--w",range(12,280)+"px");
+      el.style.setProperty("--h",range(1,4)+"px");
+      el.style.setProperty("--r",range(-25,25)+"deg");
+      el.style.setProperty("--op",range(.05,.48));
+      el.style.setProperty("--col",pick(colors));
+      scratch.appendChild(el);
+    }
+
+    for(let i=0;i<int(28,64);i++){
+      const el = document.createElement("b");
+      el.style.setProperty("--x",range(0,100)+"vw");
+      el.style.setProperty("--y",range(0,84)+"vh");
+      el.style.setProperty("--dw",range(1.5,6)+"px");
+      el.style.setProperty("--dh",range(18,170)+"px");
+      el.style.setProperty("--spd",range(2,5)+"s");
+      el.style.setProperty("--col",pick(colors));
+      el.style.animationDelay = -range(0,5)+"s";
+      scratch.appendChild(el);
+    }
+  }
+
+  function makeShards(){
+    const count = int(11,22);
+
+    for(let i=0;i<count;i++){
+      const pre = document.createElement("pre");
+      pre.className = "shard";
+
+      const rows = int(2,6);
+      const lines = [];
+
+      for(let r=0;r<rows;r++){
+        const bit = leak(pick(sourceDNA));
+        lines.push(chance(.5) ? bit : `[${int(0,9)}] ${bit}`);
+      }
+
+      pre.textContent = lines.join("\n");
+      pre.style.setProperty("--x",range(1,78)+"vw");
+      pre.style.setProperty("--y",range(2,88)+"vh");
+      pre.style.setProperty("--r",range(-12,12)+"deg");
+      pre.style.setProperty("--op",range(.38,.9));
+      pre.style.setProperty("--size",range(.62,1.28)+"rem");
+      pre.style.setProperty("--col",pick(colors));
+      wall.appendChild(pre);
+    }
+  }
+
+  function drawNoise(){
+    const w = canvas.width;
+    const h = canvas.height;
+    const img = ctx.createImageData(w,h);
+    const data = img.data;
+
+    for(let i=0;i<data.length;i+=4){
+      const n = rand() * 255;
+      data[i] = n;
+      data[i+1] = n;
+      data[i+2] = n;
+      data[i+3] = chance(.93) ? 0 : int(18,72);
+    }
+
+    ctx.putImageData(img,0,0);
+
+    ctx.font = `${int(10,18) * devicePixelRatio}px monospace`;
+
+    for(let i=0;i<int(20,60);i++){
+      ctx.fillStyle = pick(colors);
+      ctx.fillText(
+        pick([...glyphs]),
+        rand() * w,
+        rand() * h
+      );
+    }
+
+    requestAnimationFrame(drawNoise);
+  }
+
+  let frame = 0;
+  const faces = Array.from({length:18}, sigil);
+
+  function pulse(){
+    const face = faces[Math.floor(frame / int(10,22)) % faces.length];
+    const heat = frame % int(5,12) === 0 ? range(.12,.27) : range(.025,.075);
+
+    core.textContent = mutate(face, heat);
+    core.dataset.ghost = mutate(face, heat * 1.6);
+
+    if(frame % int(4,8) === 0){
+      sub.textContent = leak(pick([
+        "self.__next_f.push([1, wet_static])",
+        "dpl shifts / nonce molts / trace keeps blinking",
+        "artifact boundary rendered before meaning",
+        "loading-state chews its own shadow",
+        "locale falls sideways / shell keeps spinning",
+        "one refresh / another face / same wall"
+      ]));
+    }
+
+    core.style.transform =
+      `rotate(${range(-5,5).toFixed(2)}deg) ` +
+      `skewX(${range(-8,8).toFixed(2)}deg)`;
+
+    if(frame % int(80,140) === 0) makeScratches();
+
+    frame++;
+    setTimeout(pulse, int(70,135));
+  }
+
+  function mutate(text, heat){
+    return [...text].map((ch,i) => {
+      if(ch === " ") return ch;
+      if(chance(heat)) return pick([...glyphs]);
+      if(chance(heat / 2)) return leak(ch);
+      return ch;
+    }).join("");
+  }
+
+  configure();
+  resize();
+  makeScratches();
+  makeShards();
+
+  const first = sigil();
+  core.textContent = first;
+  core.dataset.ghost = leak(first);
+  sub.textContent = leak("artifact boundary rendered before meaning");
+
+  document.title = leak(first);
+
+  console.log(
+    "%c" + first,
+    `background:#000;color:${A};font:900 24px monospace;text-shadow:2px 0 ${B},-2px 0 ${C}`
+  );
+  console.log("%cseed="+seed.toString(16),`background:#000;color:${C};font:700 12px monospace`);
+
+  addEventListener("resize", resize);
+  drawNoise();
+  pulse();
+})();
+</script>
+</body>
+</html>

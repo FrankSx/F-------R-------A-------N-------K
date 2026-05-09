@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh;background:#fff}svg{max-width:100%;height:auto}</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <pattern id="scan" width="1920" height="4" patternUnits="userSpaceOnUse">
+      <rect width="1920" height="1" y="0" fill="#000" opacity="0.28"/>
+      <rect y="1" width="1920" height="3" fill="transparent"/>
+    </pattern>
+    <filter id="static" x="-20%" y="-30%" width="140%" height="160%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="n">
+        <animate attributeName="baseFrequency" values="0.01;0.05;0.02;0.04;0.015;0.05;0.01" dur="9s" repeatCount="indefinite"/>
+        <animate attributeName="seed" values="7;13;3;11;7" dur="13s" repeatCount="indefinite"/>
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="6" xChannelSelector="R" yChannelSelector="G">
+        <animate attributeName="scale" values="6;11;3;13;5;8;6" dur="4.4s" repeatCount="indefinite"/>
+      </feDisplacementMap>
+    </filter>
+    <filter id="ghost-g" x="-25%" y="-25%" width="150%" height="150%">
+      <feFlood id="flood-g" flood-color="#39ff14" flood-opacity="0.88" result="c"/>
+      <feComposite in="c" in2="SourceAlpha" operator="in" result="cs"/>
+      <feOffset in="cs" dx="-2.5" dy="0" result="off">
+        <animate attributeName="dx" values="-2.5;2;-3;1.5;-2.5" dur="0.14s" repeatCount="indefinite"/>
+        <animate attributeName="dy" values="0;0.7;-0.5;0.3;0" dur="0.21s" repeatCount="indefinite"/>
+      </feOffset>
+      <feBlend in="off" in2="off" mode="screen"/>
+    </filter>
+    <filter id="ghost-m" x="-25%" y="-25%" width="150%" height="150%">
+      <feFlood id="flood-m" flood-color="#ff2bd6" flood-opacity="0.88" result="c"/>
+      <feComposite in="c" in2="SourceAlpha" operator="in" result="cs"/>
+      <feOffset in="cs" dx="2.5" dy="0" result="off">
+        <animate attributeName="dx" values="2.5;-2;3;-1.8;2.5" dur="0.16s" repeatCount="indefinite"/>
+        <animate attributeName="dy" values="0;-0.6;0.5;-0.2;0" dur="0.18s" repeatCount="indefinite"/>
+      </feOffset>
+      <feBlend in="off" in2="off" mode="screen"/>
+    </filter>
+    <filter id="ghost-c" x="-25%" y="-25%" width="150%" height="150%">
+      <feFlood id="flood-c" flood-color="#00eaff" flood-opacity="0.85" result="c"/>
+      <feComposite in="c" in2="SourceAlpha" operator="in" result="cs"/>
+      <feOffset in="cs" dx="0" dy="0.5" result="off">
+        <animate attributeName="dx" values="0;1.3;-1.1;0.6;0" dur="0.2s" repeatCount="indefinite"/>
+        <animate attributeName="dy" values="0.5;-0.4;0.8;-0.3;0.5" dur="0.15s" repeatCount="indefinite"/>
+      </feOffset>
+      <feBlend in="off" in2="off" mode="screen"/>
+    </filter>
+    <text id="sigil-core" x="960" y="540" text-anchor="middle" dominant-baseline="middle" font-family="monospace" font-size="128" font-weight="700">ENTITY_Δ_CORRUPTED</text>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#000"/>
+  
+  <g id="shards" font-family="monospace" opacity="0.88"/>
+
+  <g filter="url(#static)">
+    <use href="#sigil-core" filter="url(#ghost-g)" opacity="0.95"/>
+    <use href="#sigil-core" filter="url(#ghost-m)" opacity="0.95"/>
+    <use href="#sigil-core" filter="url(#ghost-c)" opacity="0.9"/>
+    <use href="#sigil-core" fill="#f2f2f2" opacity="0.98"/>
+  </g>
+
+  <g id="drips" opacity="0.72" transform="translate(0,48)">
+    <rect x="772" y="540" width="3" height="0" fill="#39ff14"><animate attributeName="height" values="0;68;14;118;0" dur="5.8s" repeatCount="indefinite" begin="0s"/><animate attributeName="opacity" values="0;0.9;0.6;0.25;0" dur="5.8s" repeatCount="indefinite"/></rect>
+    <rect x="828" y="544" width="4" height="0" fill="#ff2bd6"><animate attributeName="height" values="0;92;22;142;0" dur="6.3s" repeatCount="indefinite" begin="0.7s"/><animate attributeName="opacity" values="0;0.9;0.55;0.2;0" dur="6.3s" repeatCount="indefinite" begin="0.7s"/></rect>
+    <rect x="892" y="547" width="3" height="0" fill="#00eaff"><animate attributeName="height" values="0;52;9;101;0" dur="4.9s" repeatCount="indefinite" begin="1.2s"/><animate attributeName="opacity" values="0;0.85;0.6;0.3;0" dur="4.9s" repeatCount="indefinite" begin="1.2s"/></rect>
+    <rect x="958" y="550" width="5" height="0" fill="#39ff14"><animate attributeName="height" values="0;128;28;162;0" dur="7.1s" repeatCount="indefinite" begin="0.4s"/><animate attributeName="opacity" values="0;0.95;0.7;0.28;0" dur="7.1s" repeatCount="indefinite" begin="0.4s"/></rect>
+    <rect x="1024" y="547" width="3" height="0" fill="#ff2bd6"><animate attributeName="height" values="0;61;13;109;0" dur="5.2s" repeatCount="indefinite" begin="1.5s"/><animate attributeName="opacity" values="0;0.9;0.5;0.22;0" dur="5.2s" repeatCount="indefinite" begin="1.5s"/></rect>
+    <rect x="1088" y="544" width="4" height="0" fill="#00eaff"><animate attributeName="height" values="0;79;17;136;0" dur="6.7s" repeatCount="indefinite" begin="0.9s"/><animate attributeName="opacity" values="0;0.88;0.58;0.26;0" dur="6.7s" repeatCount="indefinite" begin="0.9s"/></rect>
+    <rect x="1152" y="540" width="3" height="0" fill="#39ff14"><animate attributeName="height" values="0;54;11;96;0" dur="5s" repeatCount="indefinite" begin="2.1s"/><animate attributeName="opacity" values="0;0.9;0.55;0.24;0" dur="5s" repeatCount="indefinite" begin="2.1s"/></rect>
+  </g>
+
+  <rect width="1920" height="1080" fill="url(#scan)" opacity="0.32" pointer-events="none"/>
+
+  <text id="evolve-comment" x="26" y="1052" font-family="monospace" font-size="15" fill="#39ff14" opacity="0.6">// gen0: init_sequence</text>
+
+  <script type="application/ecmascript"><![CDATA[
+    const glyphs = "/\\|{}[]<>_!░▒▓█01λΔ∴∵".split("");
+    const core = document.getElementById('sigil-core');
+    let base = "ENTITY_Δ_CORRUPTED";
+    function mutateSigil(){
+      let s="";
+      for(let i=0;i<base.length;i++){
+        s += Math.random()<0.33 ? glyphs[Math.floor(Math.random()*glyphs.length)] : base[i];
+      }
+      core.textContent = s;
+    }
+    setInterval(mutateSigil, 120);
+    mutateSigil();
+
+    const dna = [
+      "dpl_C1hViaSkVNQ19hcmNoaXZl",
+      "self.__next_f.push",
+      "ar_AR.json",
+      "النظام_يتطور",
+      "المصفوفة_تنمو",
+      "∴∵∴ENTITY_CORRUPTED∵∴∵",
+      "C:\\VOID\\SYS32",
+      "λΔ_instruction_set",
+      "[CORE::BREACH]",
+      "01001110 01000101 01011000 01010100",
+      "[null_pointer]",
+      "corruption.seed++",
+      "熵增_迭代",
+      "v3.7.1-evolve"
+    ];
+    function corruptStr(s){
+      return s.split('').map(c=> Math.random()<0.28 ? glyphs[Math.floor(Math.random()*glyphs.length)] : c).join('');
+    }
+    const shards = document.getElementById('shards');
+    const shardPool = [];
+    function addShard(x,y,txt){
+      const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+      t.setAttribute("x", x);
+      t.setAttribute("y", y);
+      t.setAttribute("font-family","monospace");
+      t.setAttribute("font-size", 10+Math.random()*15);
+      t.setAttribute("fill", ["#39ff14","#ff2bd6","#00eaff","#aaaaaa"][Math.floor(Math.random()*4)]);
+      t.setAttribute("opacity", 0.28+Math.random()*0.62);
+      t.setAttribute("transform", `rotate(${Math.random()*36-18} ${x} ${y})`);
+      t.textContent = txt;
+      shards.appendChild(t);
+      shardPool.push(t);
+    }
+    for(let i=0;i<30;i++){
+      addShard(Math.random()*1840+40, Math.random()*960+60, corruptStr(dna[Math.floor(Math.random()*dna.length)]));
+    }
+    setInterval(()=>{
+      const n=1+Math.floor(Math.random()*3);
+      for(let i=0;i<n;i++){
+        const frag = dna[Math.floor(Math.random()*dna.length)];
+        addShard(Math.random()*1780+70, Math.random()*880+90, corruptStr(frag+"_"+Math.floor(Math.random()*9999)));
+      }
+    },2000);
+    setInterval(()=>{
+      while(shardPool.length>40){
+        const old = shardPool.shift();
+        if(old && old.parentNode) old.parentNode.removeChild(old);
+      }
+    },5000);
+    function randHex(hex){
+      const n=parseInt(hex.slice(1),16);
+      let r=(n>>16)&255, g=(n>>8)&255, b=n&255;
+      r=Math.max(0,Math.min(255, r+(Math.random()*50-25)|0));
+      g=Math.max(0,Math.min(255, g+(Math.random()*50-25)|0));
+      b=Math.max(0,Math.min(255, b+(Math.random()*50-25)|0));
+      return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+    }
+    setInterval(()=>{
+      document.getElementById('flood-g').setAttribute('flood-color', randHex("#39ff14"));
+      document.getElementById('flood-m').setAttribute('flood-color', randHex("#ff2bd6"));
+      document.getElementById('flood-c').setAttribute('flood-color', randHex("#00eaff"));
+    },3000);
+    let gen=0;
+    const codeEl=document.getElementById('evolve-comment');
+    setInterval(()=>{
+      gen++;
+      const muts=[
+        "// MUT_"+gen+": stable",
+        "// DNASPLICE_"+Math.random().toString(36).slice(2,7),
+        "// forget:"+dna[Math.floor(Math.random()*dna.length)].slice(0,12),
+        "// "+glyphs.sort(()=>0.5-Math.random()).slice(0,8).join(''),
+        "// self.__next_f.push("+gen+")",
+        "// ar_AR.json reloaded"
+      ];
+      codeEl.textContent = muts[Math.floor(Math.random()*muts.length)];
+      base = base.split('').map(ch=> Math.random()<0.018 ? glyphs[Math.floor(Math.random()*glyphs.length)] : ch).join('');
+    },3700);
+  ]]></script>
+</svg>
+</body>
+</html>
