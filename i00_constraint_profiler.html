@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i=00 — Constraint Profiler | Adversarial Parser Mastery</title>
+<style>
+  :root {
+    --bg: #0a0a0f; --panel: #12121a; --accent: #00ff9d; --accent2: #ff0055;
+    --text: #c0c0d0; --muted: #606070; --border: #1f1f2e; --ok: #00ff9d; --warn: #ffcc00; --fail: #ff0055;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Courier New', Courier, monospace;
+    line-height: 1.6; min-height: 100vh; padding: 2rem;
+  }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header {
+    border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 2rem;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  h1 { color: var(--accent); font-size: 1.4rem; letter-spacing: 2px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; }
+  .ascii-art {
+    color: var(--accent2); font-size: 0.65rem; line-height: 1.1; white-space: pre;
+    opacity: 0.7;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1rem; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .card-title {
+    color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 0.75rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .badge {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold;
+    text-transform: uppercase;
+  }
+  .badge-ok { background: rgba(0,255,157,0.15); color: var(--ok); border: 1px solid var(--ok); }
+  .badge-warn { background: rgba(255,204,0,0.15); color: var(--warn); border: 1px solid var(--warn); }
+  .badge-fail { background: rgba(255,0,85,0.15); color: var(--fail); border: 1px solid var(--fail); }
+  .badge-info { background: rgba(0,150,255,0.15); color: #0096ff; border: 1px solid #0096ff; }
+  table { width: 100%; font-size: 0.8rem; border-collapse: collapse; }
+  td { padding: 4px 0; border-bottom: 1px solid var(--border); }
+  td:first-child { color: var(--muted); width: 45%; }
+  td:last-child { color: var(--text); word-break: break-word; }
+  .value-ok { color: var(--ok); font-weight: bold; }
+  .value-warn { color: var(--warn); font-weight: bold; }
+  .value-fail { color: var(--fail); font-weight: bold; }
+  .value-accent { color: var(--accent); font-weight: bold; }
+  .console {
+    background: #000; border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.75rem; font-size: 0.75rem; color: #888; max-height: 300px;
+    overflow-y: auto; margin-top: 1rem; white-space: pre-wrap;
+  }
+  .console-line { margin: 1px 0; }
+  .console-time { color: var(--muted); }
+  .console-ok { color: var(--ok); }
+  .console-warn { color: var(--warn); }
+  .console-fail { color: var(--fail); }
+  .console-info { color: #0096ff; }
+  .actions {
+    display: flex; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  button {
+    background: var(--panel); color: var(--accent); border: 1px solid var(--accent);
+    padding: 0.5rem 1rem; font-family: inherit; font-size: 0.8rem; cursor: pointer;
+    border-radius: 4px; transition: all 0.2s;
+  }
+  button:hover { background: var(--accent); color: var(--bg); }
+  button.secondary { color: var(--accent2); border-color: var(--accent2); }
+  button.secondary:hover { background: var(--accent2); color: #fff; }
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.3s; z-index: 1000;
+  }
+  .hidden { display: none; }
+  .test-harness {
+    margin-top: 0.5rem; padding: 0.5rem; background: rgba(0,0,0,0.3); border-radius: 4px;
+    font-size: 0.75rem; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<div class="progress" id="progressBar" style="width:0%"></div>
+<div class="container">
+  <header>
+    <div>
+      <h1>i=00 — CONSTRAINT PROFILER</h1>
+      <div class="subtitle">Adversarial Parser Mastery // Reconnaissance Module</div>
+    </div>
+    <div class="ascii-art">
+    ██╗██████╗ ██╗   ██╗███╗   ██╗████████╗
+    ██║╚════██╗██║   ██║████╗  ██║╚══██╔══╝
+    ██║ █████╔╝██║   ██║██╔██╗ ██║   ██║   
+    ██║ ╚═══██╗██║   ██║██║╚██╗██║   ██║   
+    ██║██████╔╝╚██████╔╝██║ ╚████║   ██║   
+    ╚═╝╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝   
+    </div>
+  </header>
+
+  <div class="grid" id="resultsGrid">
+    <!-- Cards injected by JS -->
+  </div>
+
+  <div class="actions">
+    <button onclick="runAll()">▶ RUN FULL PROFILE</button>
+    <button class="secondary" onclick="exportJSON()">⬇ EXPORT JSON</button>
+    <button class="secondary" onclick="exportMarkdown()">⬇ EXPORT MARKDOWN</button>
+    <button class="secondary" onclick="clearLog()">CLEAR LOG</button>
+  </div>
+
+  <div class="console" id="console"></div>
+</div>
+
+<script>
+// ============================================
+// i=00 — CONSTRAINT PROFILER ENGINE
+// ============================================
+const profiler = {
+  data: {},
+  log: [],
+  startTime: 0,
+
+  init() {
+    this.startTime = performance.now();
+    this.data = {
+      meta: {
+        timestamp: new Date().toISOString(),
+        url: location.href,
+        origin: location.origin,
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        cores: navigator.hardwareConcurrency || 'unknown',
+        memory: navigator.deviceMemory || 'unknown',
+        screen: `${screen.width}x${screen.height}`,
+        dpr: window.devicePixelRatio,
+        colorDepth: screen.colorDepth
+      },
+      parser: {},
+      engine: {},
+      security: {},
+      features: {},
+      dom: {},
+      bypass_surface: {}
+    };
+    this.log.push(`[${this.ts()}] Profiler initialized`);
+  },
+
+  ts() {
+    return (performance.now() - this.startTime).toFixed(2);
+  },
+
+  logMsg(msg, type='info') {
+    this.log.push({time: this.ts(), msg, type});
+    const c = document.getElementById('console');
+    const colorClass = type === 'ok' ? 'console-ok' : type === 'warn' ? 'console-warn' : type === 'fail' ? 'console-fail' : 'console-info';
+    c.innerHTML += `<div class="console-line"><span class="console-time">[${this.ts()}s]</span> <span class="${colorClass}">${msg}</span></div>`;
+    c.scrollTop = c.scrollHeight;
+  },
+
+  // --- PARSER DETECTION ---
+  detectParser() {
+    this.logMsg('Probing parser configuration...', 'info');
+    const d = this.data.parser;
+
+    // Quirks vs Standards
+    d.compatMode = document.compatMode;
+    d.doctype = document.doctype ? document.doctype.name : 'none';
+
+    // Content-Type sniffing indicator
+    d.contentType = document.contentType || 'unknown';
+
+    // Character set
+    d.charset = document.characterSet || document.charset || 'unknown';
+
+    // Template support & behavior
+    const tpl = document.createElement('template');
+    tpl.innerHTML = '<tr><td>test</td></tr>';
+    d.templateContentSupported = 'content' in tpl;
+    d.templateFosterParenting = tpl.content.childNodes[0].nodeName !== 'TR';
+
+    // Foster parenting test (Blink vs Gecko divergence)
+    const table = document.createElement('table');
+    table.innerHTML = '<p><button>test</button></p>';
+    d.fosterParentingActive = table.querySelector('button').parentNode.nodeName !== 'P';
+
+    // Custom element registry
+    d.customElementsDefined = typeof customElements !== 'undefined';
+    d.customElementsCount = d.customElementsDefined ? Object.keys(customElements).length : 0;
+    d.customElementsHasXyz = d.customElementsDefined && !!customElements.get('xyz');
+
+    // Namespace integration points
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const foreign = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    foreign.innerHTML = '<div>test</div>';
+    d.svgForeignObjectHTML = foreign.querySelector('div') !== null;
+
+    // MathML integration
+    const math = document.createElementNS('http://www.w3.org/1998/Math/MathML', 'math');
+    math.innerHTML = '<mtext><span>test</span></mtext>';
+    d.mathMLHTMLIntegration = math.querySelector('span') !== null;
+
+    // Parser insertion points
+    d.documentWriteEnabled = typeof document.write === 'function';
+    d.documentWritelnEnabled = typeof document.writeln === 'function';
+
+    this.logMsg(`Parser: ${d.compatMode}, Foster: ${d.fosterParentingActive}, Template: ${d.templateFosterParenting}`, d.fosterParentingActive ? 'warn' : 'ok');
+  },
+
+  // --- ENGINE FINGERPRINTING ---
+  detectEngine() {
+    this.logMsg('Fingerprinting rendering engine...', 'info');
+    const d = this.data.engine;
+    const ua = navigator.userAgent;
+
+    // Primary engine detection
+    if (ua.includes('Chrome/') || ua.includes('Chromium/') || ua.includes('Edg/')) {
+      d.primary = 'Blink';
+      const m = ua.match(/Chrome\/(\d+)/) || ua.match(/Edg\/(\d+)/);
+      d.version = m ? m[1] : 'unknown';
+    } else if (ua.includes('Firefox/')) {
+      d.primary = 'Gecko';
+      const m = ua.match(/Firefox\/(\d+)/);
+      d.version = m ? m[1] : 'unknown';
+    } else if (ua.includes('Safari/') && !ua.includes('Chrome/')) {
+      d.primary = 'WebKit';
+      const m = ua.match(/Version\/(\d+)/);
+      d.version = m ? m[1] : 'unknown';
+    } else {
+      d.primary = 'Unknown';
+      d.version = 'unknown';
+    }
+
+    // V8 vs SpiderMonkey vs JSC
+    d.jsEngine = (() => {
+      try {
+        eval('%GetOptimizationStatus(function(){})');
+        return 'V8 (Chrome/Node)';
+      } catch(e) {
+        if (typeof WebAssembly !== 'undefined' && typeof wasmIsValid === 'function') return 'SpiderMonkey (Firefox)';
+        if (typeof $vm !== 'undefined') return 'JSC (Safari)';
+        return 'Unknown/Obfuscated';
+      }
+    })();
+
+    // WebGL renderer (GPU fingerprinting)
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        d.gpuVendor = debugInfo ? gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL) : 'hidden';
+        d.gpuRenderer = debugInfo ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : 'hidden';
+      }
+    } catch(e) { d.gpuVendor = 'error'; d.gpuRenderer = 'error'; }
+
+    // Feature-specific engine tells
+    d.hasOffscreenCanvas = typeof OffscreenCanvas !== 'undefined';
+    d.hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
+    d.hasAtomics = typeof Atomics !== 'undefined';
+    d.hasBigInt = typeof BigInt !== 'undefined';
+    d.hasWeakRef = typeof WeakRef !== 'undefined';
+    d.hasFinalizationRegistry = typeof FinalizationRegistry !== 'undefined';
+
+    this.logMsg(`Engine: ${d.primary} v${d.version} / JS: ${d.jsEngine}`, 'ok');
+  },
+
+  // --- SECURITY POLICY DETECTION ---
+  detectSecurity() {
+    this.logMsg('Scanning security policies...', 'info');
+    const d = this.data.security;
+
+    // CSP
+    d.cspPresent = false;
+    d.cspDirectives = {};
+    try {
+      const cspMeta = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+      const cspContent = cspMeta ? cspMeta.content : '';
+      if (cspContent) {
+        d.cspPresent = true;
+        d.cspMeta = cspContent;
+        cspContent.split(';').forEach(dir => {
+          const parts = dir.trim().split(/\s+/);
+          if (parts[0]) d.cspDirectives[parts[0]] = parts.slice(1);
+        });
+      }
+    } catch(e) {}
+
+    // Trusted Types
+    d.trustedTypesEnabled = typeof trustedTypes !== 'undefined';
+    d.trustedTypesPolicyCount = 0;
+    if (d.trustedTypesEnabled) {
+      try {
+        d.trustedTypesPolicyCount = trustedTypes.getPolicyNames ? trustedTypes.getPolicyNames().length : 'unknown';
+      } catch(e) {}
+      try {
+        const testPolicy = trustedTypes.createPolicy('__probe__', { createHTML: s => s });
+        d.trustedTypesCreateHTMLWorks = !!testPolicy.createHTML('test');
+      } catch(e) { d.trustedTypesCreateHTMLWorks = false; }
+    }
+
+    // iframe sandbox (self)
+    d.inIframe = window.self !== window.top;
+    d.inSandboxedIframe = false;
+    try {
+      d.inSandboxedIframe = window.parent.document.domain !== document.domain;
+    } catch(e) { d.inSandboxedIframe = true; }
+
+    // COOP/COEP
+    d.crossOriginIsolated = window.crossOriginIsolated;
+    d.crossOriginOpenerPolicy = 'unknown';
+    d.crossOriginEmbedderPolicy = 'unknown';
+
+    // Feature Policy / Permissions Policy
+    d.permissionsPolicy = {};
+    if (document.featurePolicy || document.permissionsPolicy) {
+      const fp = document.featurePolicy || document.permissionsPolicy;
+      if (fp && fp.allowedFeatures) {
+        fp.allowedFeatures().forEach(f => {
+          try { d.permissionsPolicy[f] = fp.allowsFeature(f); } catch(e) {}
+        });
+      }
+    }
+
+    // Secure context
+    d.isSecureContext = window.isSecureContext;
+    d.hasCredentialManagement = 'credentials' in navigator;
+    d.hasPaymentRequest = 'PaymentRequest' in window;
+
+    this.logMsg(`CSP: ${d.cspPresent ? 'ACTIVE' : 'none'}, TrustedTypes: ${d.trustedTypesEnabled}, Sandbox: ${d.inSandboxedIframe ? 'YES' : 'no'}`, d.cspPresent || d.trustedTypesEnabled ? 'warn' : 'ok');
+  },
+
+  // --- FEATURE SURFACE ---
+  detectFeatures() {
+    this.logMsg('Mapping available feature surface...', 'info');
+    const d = this.data.features;
+
+    // Web Components
+    d.shadowDOM = !!document.createElement('div').attachShadow;
+    d.declarativeShadowDOM = !!HTMLTemplateElement.prototype.hasOwnProperty('shadowRoot');
+    d.slots = !!HTMLSlotElement;
+
+    // Workers & Threads
+    d.webWorkers = typeof Worker !== 'undefined';
+    d.serviceWorkers = 'serviceWorker' in navigator;
+    d.sharedWorkers = typeof SharedWorker !== 'undefined';
+
+    // Storage
+    d.localStorage = !!window.localStorage;
+    d.sessionStorage = !!window.sessionStorage;
+    d.indexedDB = !!window.indexedDB;
+    d.cacheStorage = 'caches' in window;
+    d.estimatedStorage = 'storage' in navigator && 'estimate' in navigator.storage;
+
+    // Network
+    d.webRTC = !!window.RTCPeerConnection;
+    d.webSocket = !!window.WebSocket;
+    d.webTransport = !!window.WebTransport;
+    d.fetch = !!window.fetch;
+    d.beacon = !!navigator.sendBeacon;
+
+    // Hardware
+    d.webUSB = 'usb' in navigator;
+    d.webBluetooth = 'bluetooth' in navigator;
+    d.webSerial = 'serial' in navigator;
+    d.webHID = 'hid' in navigator;
+    d.webNFC = 'nfc' in navigator;
+    d.webGPU = !!navigator.gpu;
+    d.webXR = 'xr' in navigator;
+    d.geolocation = 'geolocation' in navigator;
+    d.mediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    d.notifications = 'Notification' in window;
+    d.pushManager = 'PushManager' in window;
+    d.clipboard = !!(navigator.clipboard);
+    d.clipboardRead = !!(navigator.clipboard && navigator.clipboard.readText);
+
+    // File System
+    d.showOpenFilePicker = 'showOpenFilePicker' in window;
+    d.showSaveFilePicker = 'showSaveFilePicker' in window;
+    d.fileSystemAccess = 'FileSystemHandle' in window;
+
+    this.logMsg(`Feature surface: ${Object.values(d).filter(Boolean).length}/${Object.values(d).length} APIs available`, 'info');
+  },
+
+  // --- DOM STATE ---
+  detectDOM() {
+    this.logMsg('Analyzing DOM state and structure...', 'info');
+    const d = this.data.dom;
+
+    d.documentURI = document.documentURI || document.URL;
+    d.baseURI = document.baseURI;
+    d.domain = document.domain;
+    d.referrer = document.referrer;
+    d.lastModified = document.lastModified;
+    d.readyState = document.readyState;
+
+    // Shadow roots present
+    d.shadowRootsDetected = document.querySelectorAll('*').length;
+    d.customElementsInDOM = [...document.querySelectorAll('*')].filter(el => el.tagName.includes('-')).length;
+
+    // iframe count
+    d.iframesOnPage = document.querySelectorAll('iframe').length;
+    d.sandboxedIframes = document.querySelectorAll('iframe[sandbox]').length;
+
+    // Event listener count (approximate via getEventListeners if DevTools open)
+    d.devtoolsOpen = false;
+    try {
+      const threshold = 160;
+      const start = performance.now();
+      debugger;
+      const end = performance.now();
+      d.devtoolsOpen = (end - start) > threshold;
+    } catch(e) {}
+
+    // MutationObserver support
+    d.mutationObserver = typeof MutationObserver !== 'undefined';
+    d.intersectionObserver = typeof IntersectionObserver !== 'undefined';
+    d.resizeObserver = typeof ResizeObserver !== 'undefined';
+    d.performanceObserver = typeof PerformanceObserver !== 'undefined';
+
+    this.logMsg(`DOM ready: ${d.readyState}, Elements: ${d.shadowRootsDetected}, Custom: ${d.customElementsInDOM}`, 'info');
+  },
+
+  // --- BYPASS SURFACE SCORING ---
+  calculateBypassSurface() {
+    this.logMsg('Calculating bypass surface score...', 'info');
+    const d = this.data.bypass_surface;
+    const p = this.data.parser;
+    const s = this.data.security;
+    const f = this.data.features;
+    const e = this.data.engine;
+
+    // Scoring: higher = more bypass opportunities
+    let score = 0;
+    const vectors = [];
+
+    if (p.fosterParentingActive) { score += 25; vectors.push('foster-parenting-escape'); }
+    if (!s.cspPresent) { score += 20; vectors.push('no-csp'); }
+    if (!s.trustedTypesEnabled) { score += 15; vectors.push('no-trusted-types'); }
+    if (p.templateFosterParenting) { score += 15; vectors.push('template-fragment-escape'); }
+    if (!s.isSecureContext) { score += 10; vectors.push('insecure-context'); }
+    if (f.webUSB) { score += 10; vectors.push('webusb-hid-injection'); }
+    if (f.webBluetooth) { score += 10; vectors.push('webbluetooth-scan'); }
+    if (!s.crossOriginIsolated) { score += 10; vectors.push('no-coep-co'); }
+    if (e.primary === 'Blink') { score += 5; vectors.push('blink-specific-bugs'); }
+    if (p.svgForeignObjectHTML) { score += 10; vectors.push('svg-namespace-pivot'); }
+    if (p.mathMLHTMLIntegration) { score += 10; vectors.push('mathml-namespace-pivot'); }
+    if (!s.inSandboxedIframe && s.inIframe) { score += 10; vectors.push('unsandboxed-iframe-escalation'); }
+    if (f.declarativeShadowDOM) { score += 10; vectors.push('declarative-shadow-dom-parse'); }
+    if (f.webWorkers && !s.cspDirectives['worker-src']) { score += 10; vectors.push('worker-script-injection'); }
+    if (d.customElementsInDOM > 0) { score += 5; vectors.push('registered-custom-elements'); }
+
+    d.score = score;
+    d.maxScore = 200;
+    d.vectors = vectors;
+    d.riskLevel = score > 100 ? 'CRITICAL' : score > 60 ? 'HIGH' : score > 30 ? 'MEDIUM' : 'LOW';
+
+    this.logMsg(`Bypass surface score: ${score}/${d.maxScore} — ${d.riskLevel}`, score > 60 ? 'warn' : 'ok');
+    vectors.forEach(v => this.logMsg(`  → ${v}`, 'info'));
+  },
+
+  // --- RENDERING ---
+  render() {
+    const grid = document.getElementById('resultsGrid');
+    grid.innerHTML = '';
+
+    const createCard = (title, badge, badgeClass, rows) => {
+      let html = `<div class="card"><div class="card-title">${title}<span class="badge ${badgeClass}">${badge}</span></div><table>`;
+      rows.forEach(([k, v, cls]) => {
+        html += `<tr><td>${k}</td><td class="${cls || ''}">${v}</td></tr>`;
+      });
+      html += `</table></div>`;
+      return html;
+    };
+
+    const m = this.data.meta;
+    grid.innerHTML += createCard('META / ENVIRONMENT', 'INFO', 'badge-info', [
+      ['Timestamp', m.timestamp, 'value-accent'],
+      ['Origin', m.origin, ''],
+      ['Platform', m.platform, ''],
+      ['Screen', `${m.screen} @ ${m.dpr}x`, ''],
+      ['Cores', m.cores, ''],
+      ['Memory (GB)', m.memory, ''],
+      ['UA', `<span style="font-size:0.7rem">${m.userAgent}</span>`, '']
+    ]);
+
+    const p = this.data.parser;
+    grid.innerHTML += createCard('PARSER / TOKENIZER', p.compatMode === 'CSS1Compat' ? 'STANDARDS' : 'QUIRKS', p.compatMode === 'CSS1Compat' ? 'badge-ok' : 'badge-warn', [
+      ['Doctype', p.doctype, ''],
+      ['Compat Mode', p.compatMode, p.compatMode === 'CSS1Compat' ? 'value-ok' : 'value-warn'],
+      ['Content-Type', p.contentType, ''],
+      ['Charset', p.charset, 'value-accent'],
+      ['Foster Parenting', p.fosterParentingActive ? 'ACTIVE ⚠' : 'Inactive', p.fosterParentingActive ? 'value-warn' : 'value-ok'],
+      ['Template Foster', p.templateFosterParenting ? 'YES ⚠' : 'No', p.templateFosterParenting ? 'value-warn' : 'value-ok'],
+      ['SVG foreignObject HTML', p.svgForeignObjectHTML ? 'YES' : 'No', p.svgForeignObjectHTML ? 'value-warn' : 'value-ok'],
+      ['MathML HTML Integration', p.mathMLHTMLIntegration ? 'YES' : 'No', p.mathMLHTMLIntegration ? 'value-warn' : 'value-ok'],
+      ['Custom Elements', p.customElementsDefined ? `Defined (${p.customElementsCount})` : 'None', p.customElementsDefined ? 'value-warn' : 'value-ok'],
+      ['Has &lt;xyz&gt; CE', p.customElementsHasXyz ? 'YES' : 'No', p.customElementsHasXyz ? 'value-warn' : 'value-ok'],
+      ['document.write', p.documentWriteEnabled ? 'Enabled' : 'Blocked', p.documentWriteEnabled ? 'value-warn' : 'value-ok']
+    ]);
+
+    const e = this.data.engine;
+    grid.innerHTML += createCard('ENGINE / RUNTIME', e.primary, 'badge-info', [
+      ['Primary Engine', e.primary, 'value-accent'],
+      ['Version', e.version, 'value-accent'],
+      ['JS Engine', e.jsEngine, ''],
+      ['GPU Vendor', e.gpuVendor || 'N/A', ''],
+      ['GPU Renderer', e.gpuRenderer || 'N/A', ''],
+      ['SharedArrayBuffer', e.hasSharedArrayBuffer ? 'YES' : 'No', e.hasSharedArrayBuffer ? 'value-warn' : 'value-ok'],
+      ['Atomics', e.hasAtomics ? 'YES' : 'No', e.hasAtomics ? 'value-warn' : 'value-ok'],
+      ['BigInt', e.hasBigInt ? 'YES' : 'No', ''],
+      ['WeakRef', e.hasWeakRef ? 'YES' : 'No', '']
+    ]);
+
+    const s = this.data.security;
+    grid.innerHTML += createCard('SECURITY POLICIES', s.cspPresent ? 'HARDENED' : 'PERMISSIVE', s.cspPresent ? 'badge-ok' : 'badge-warn', [
+      ['CSP Present', s.cspPresent ? 'YES ✓' : 'None', s.cspPresent ? 'value-ok' : 'value-warn'],
+      ['CSP Meta', s.cspMeta ? `<span style="font-size:0.7rem">${s.cspMeta}</span>` : 'N/A', ''],
+      ['Trusted Types', s.trustedTypesEnabled ? `Enabled (${s.trustedTypesPolicyCount} policies)` : 'Disabled', s.trustedTypesEnabled ? 'value-ok' : 'value-warn'],
+      ['TT createHTML', s.trustedTypesCreateHTMLWorks ? 'Works' : 'Blocked', ''],
+      ['Secure Context', s.isSecureContext ? 'YES ✓' : 'NO ⚠', s.isSecureContext ? 'value-ok' : 'value-fail'],
+      ['In Iframe', s.inIframe ? 'YES' : 'No', s.inIframe ? 'value-warn' : 'value-ok'],
+      ['Sandboxed Iframe', s.inSandboxedIframe ? 'YES' : 'No', s.inSandboxedIframe ? 'value-ok' : 'value-warn'],
+      ['Cross-Origin Isolated', s.crossOriginIsolated ? 'YES' : 'No', s.crossOriginIsolated ? 'value-ok' : 'value-warn'],
+      ['Credential Management', s.hasCredentialManagement ? 'YES' : 'No', ''],
+      ['Payment Request', s.hasPaymentRequest ? 'YES' : 'No', '']
+    ]);
+
+    const f = this.data.features;
+    grid.innerHTML += createCard('FEATURE SURFACE', 'MAP', 'badge-info', [
+      ['Shadow DOM', f.shadowDOM ? 'YES' : 'No', f.shadowDOM ? 'value-warn' : 'value-ok'],
+      ['Declarative Shadow DOM', f.declarativeShadowDOM ? 'YES' : 'No', f.declarativeShadowDOM ? 'value-warn' : 'value-ok'],
+      ['Web Workers', f.webWorkers ? 'YES' : 'No', ''],
+      ['Service Workers', f.serviceWorkers ? 'YES' : 'No', ''],
+      ['WebRTC', f.webRTC ? 'YES' : 'No', f.webRTC ? 'value-warn' : 'value-ok'],
+      ['WebUSB', f.webUSB ? 'YES ⚠' : 'No', f.webUSB ? 'value-warn' : 'value-ok'],
+      ['WebBluetooth', f.webBluetooth ? 'YES ⚠' : 'No', f.webBluetooth ? 'value-warn' : 'value-ok'],
+      ['WebHID', f.webHID ? 'YES ⚠' : 'No', f.webHID ? 'value-warn' : 'value-ok'],
+      ['WebSerial', f.webSerial ? 'YES ⚠' : 'No', f.webSerial ? 'value-warn' : 'value-ok'],
+      ['WebGPU', f.webGPU ? 'YES' : 'No', ''],
+      ['File System Access', f.fileSystemAccess ? 'YES' : 'No', f.fileSystemAccess ? 'value-warn' : 'value-ok'],
+      ['Clipboard Read', f.clipboardRead ? 'YES ⚠' : 'No', f.clipboardRead ? 'value-warn' : 'value-ok']
+    ]);
+
+    const dom = this.data.dom;
+    grid.innerHTML += createCard('DOM STATE', dom.readyState.toUpperCase(), 'badge-info', [
+      ['Ready State', dom.readyState, 'value-accent'],
+      ['Document URI', `<span style="font-size:0.7rem">${dom.documentURI}</span>`, ''],
+      ['Base URI', `<span style="font-size:0.7rem">${dom.baseURI}</span>`, ''],
+      ['Domain', dom.domain, ''],
+      ['Referrer', dom.referrer || 'None', dom.referrer ? 'value-warn' : 'value-ok'],
+      ['Total Elements', dom.shadowRootsDetected, ''],
+      ['Custom Elements in DOM', dom.customElementsInDOM, dom.customElementsInDOM > 0 ? 'value-warn' : 'value-ok'],
+      ['Iframes', dom.iframesOnPage, dom.iframesOnPage > 0 ? 'value-warn' : 'value-ok'],
+      ['Sandboxed Iframes', dom.sandboxedIframes, ''],
+      ['DevTools Detected', dom.devtoolsOpen ? 'YES ⚠' : 'No', dom.devtoolsOpen ? 'value-warn' : 'value-ok'],
+      ['MutationObserver', dom.mutationObserver ? 'YES' : 'No', '']
+    ]);
+
+    const b = this.data.bypass_surface;
+    grid.innerHTML += createCard('BYPASS SURFACE', `${b.score}/${b.maxScore}`, b.score > 60 ? 'badge-fail' : b.score > 30 ? 'badge-warn' : 'badge-ok', [
+      ['Risk Level', b.riskLevel, b.riskLevel === 'CRITICAL' ? 'value-fail' : b.riskLevel === 'HIGH' ? 'value-warn' : 'value-ok'],
+      ['Score', b.score, 'value-accent'],
+      ['Active Vectors', b.vectors.length, 'value-accent'],
+      ['Vectors', `<span style="font-size:0.7rem">${b.vectors.join(', ')}</span>`, '']
+    ]);
+  }
+};
+
+// ============================================
+// UI CONTROLLERS
+// ============================================
+function runAll() {
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('console').innerHTML = '';
+  profiler.log = [];
+
+  const steps = [
+    () => { profiler.init(); document.getElementById('progressBar').style.width = '10%'; },
+    () => { profiler.detectParser(); document.getElementById('progressBar').style.width = '30%'; },
+    () => { profiler.detectEngine(); document.getElementById('progressBar').style.width = '50%'; },
+    () => { profiler.detectSecurity(); document.getElementById('progressBar').style.width = '70%'; },
+    () => { profiler.detectFeatures(); document.getElementById('progressBar').style.width = '80%'; },
+    () => { profiler.detectDOM(); document.getElementById('progressBar').style.width = '90%'; },
+    () => { profiler.calculateBypassSurface(); document.getElementById('progressBar').style.width = '95%'; },
+    () => { profiler.render(); document.getElementById('progressBar').style.width = '100%'; }
+  ];
+
+  let i = 0;
+  function next() {
+    if (i < steps.length) {
+      steps[i]();
+      i++;
+      setTimeout(next, 50);
+    }
+  }
+  next();
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(profiler.data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `i00-constraint-profile-${Date.now()}.json`;
+  a.click();
+  profiler.logMsg('JSON exported', 'ok');
+}
+
+function exportMarkdown() {
+  const d = profiler.data;
+  let md = `# i=00 — Constraint Profiler Report\n\n`;
+  md += `**Generated:** ${d.meta.timestamp}\n`;
+  md += `**Origin:** ${d.meta.origin}\n`;
+  md += `**User-Agent:** ${d.meta.userAgent}\n\n`;
+  md += `## Parser Configuration\n\n`;
+  md += `- **Compat Mode:** ${d.parser.compatMode}\n`;
+  md += `- **Foster Parenting:** ${d.parser.fosterParentingActive ? 'ACTIVE' : 'Inactive'}\n`;
+  md += `- **Template Foster:** ${d.parser.templateFosterParenting ? 'YES' : 'No'}\n`;
+  md += `- **Custom Elements:** ${d.parser.customElementsDefined ? 'Available' : 'None'}\n\n`;
+  md += `## Engine\n\n`;
+  md += `- **Primary:** ${d.engine.primary} v${d.engine.version}\n`;
+  md += `- **JS Engine:** ${d.engine.jsEngine}\n\n`;
+  md += `## Security Policies\n\n`;
+  md += `- **CSP:** ${d.security.cspPresent ? 'Present' : 'None'}\n`;
+  md += `- **Trusted Types:** ${d.security.trustedTypesEnabled ? 'Enabled' : 'Disabled'}\n`;
+  md += `- **Secure Context:** ${d.security.isSecureContext ? 'Yes' : 'No'}\n`;
+  md += `- **In Sandbox:** ${d.security.inSandboxedIframe ? 'Yes' : 'No'}\n\n`;
+  md += `## Bypass Surface\n\n`;
+  md += `- **Score:** ${d.bypass_surface.score}/${d.bypass_surface.maxScore}\n`;
+  md += `- **Risk Level:** ${d.bypass_surface.riskLevel}\n`;
+  md += `- **Vectors:** ${d.bypass_surface.vectors.join(', ')}\n\n`;
+
+  const blob = new Blob([md], {type: 'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `i00-constraint-profile-${Date.now()}.md`;
+  a.click();
+  profiler.logMsg('Markdown exported', 'ok');
+}
+
+function clearLog() {
+  document.getElementById('console').innerHTML = '';
+  profiler.log = [];
+}
+
+// Auto-run on load
+window.addEventListener('DOMContentLoaded', runAll);
+</script>
+</body>
+</html>

@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>i=01 — DOMPurify Constraint Mapper | Adversarial Parser Mastery</title>
+<style>
+  :root {
+    --bg: #0a0a0f; --panel: #12121a; --accent: #00ff9d; --accent2: #ff0055;
+    --text: #c0c0d0; --muted: #606070; --border: #1f1f2e; --ok: #00ff9d; --warn: #ffcc00; --fail: #ff0055;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text); font-family: 'Courier New', Courier, monospace;
+    line-height: 1.6; min-height: 100vh; padding: 2rem;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  header {
+    border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 2rem;
+    display: flex; justify-content: space-between; align-items: flex-end;
+  }
+  h1 { color: var(--accent); font-size: 1.4rem; letter-spacing: 2px; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; }
+  .ascii-art {
+    color: var(--accent2); font-size: 0.65rem; line-height: 1.1; white-space: pre;
+    opacity: 0.7;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 1rem; }
+  .card {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 6px;
+    padding: 1rem; position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .card-title {
+    color: var(--accent); font-size: 0.9rem; font-weight: bold; margin-bottom: 0.75rem;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .badge {
+    font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; font-weight: bold;
+    text-transform: uppercase;
+  }
+  .badge-ok { background: rgba(0,255,157,0.15); color: var(--ok); border: 1px solid var(--ok); }
+  .badge-warn { background: rgba(255,204,0,0.15); color: var(--warn); border: 1px solid var(--warn); }
+  .badge-fail { background: rgba(255,0,85,0.15); color: var(--fail); border: 1px solid var(--fail); }
+  .badge-info { background: rgba(0,150,255,0.15); color: #0096ff; border: 1px solid #0096ff; }
+  table { width: 100%; font-size: 0.8rem; border-collapse: collapse; }
+  td { padding: 4px 0; border-bottom: 1px solid var(--border); }
+  td:first-child { color: var(--muted); width: 45%; }
+  td:last-child { color: var(--text); word-break: break-word; }
+  .value-ok { color: var(--ok); font-weight: bold; }
+  .value-warn { color: var(--warn); font-weight: bold; }
+  .value-fail { color: var(--fail); font-weight: bold; }
+  .value-accent { color: var(--accent); font-weight: bold; }
+  .console {
+    background: #000; border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.75rem; font-size: 0.75rem; color: #888; max-height: 400px;
+    overflow-y: auto; margin-top: 1rem; white-space: pre-wrap;
+  }
+  .console-line { margin: 1px 0; }
+  .console-time { color: var(--muted); }
+  .console-ok { color: var(--ok); }
+  .console-warn { color: var(--warn); }
+  .console-fail { color: var(--fail); }
+  .console-info { color: #0096ff; }
+  .actions {
+    display: flex; gap: 0.5rem; margin-top: 1.5rem; flex-wrap: wrap;
+  }
+  button {
+    background: var(--panel); color: var(--accent); border: 1px solid var(--accent);
+    padding: 0.5rem 1rem; font-family: inherit; font-size: 0.8rem; cursor: pointer;
+    border-radius: 4px; transition: all 0.2s;
+  }
+  button:hover { background: var(--accent); color: var(--bg); }
+  button.secondary { color: var(--accent2); border-color: var(--accent2); }
+  button.secondary:hover { background: var(--accent2); color: #fff; }
+  .progress {
+    position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.3s; z-index: 1000;
+  }
+  .test-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem;
+  }
+  .test-name { color: var(--muted); }
+  .test-result { font-weight: bold; }
+  .pass { color: var(--ok); }
+  .fail { color: var(--fail); }
+  .partial { color: var(--warn); }
+  .vector-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+  }
+  .vector-item {
+    background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 4px;
+    font-size: 0.75rem; border-left: 3px solid var(--border);
+  }
+  .vector-item.bypassed { border-left-color: var(--fail); }
+  .vector-item.blocked { border-left-color: var(--ok); }
+  .vector-item.partial { border-left-color: var(--warn); }
+  .vector-label { color: var(--muted); font-size: 0.7rem; text-transform: uppercase; }
+  .vector-payload { color: var(--text); font-family: monospace; font-size: 0.7rem; margin: 2px 0; }
+  .vector-status { font-weight: bold; font-size: 0.75rem; }
+</style>
+</head>
+<body>
+<div class="progress" id="progressBar" style="width:0%"></div>
+<div class="container">
+  <header>
+    <div>
+      <h1>i=01 — DOMPURIFY CONSTRAINT MAPPER</h1>
+      <div class="subtitle">Adversarial Parser Mastery // Sanitizer Reconnaissance Module</div>
+    </div>
+    <div class="ascii-art">
+    ██████╗  ██████╗ ███╗   ███╗██████╗ ██╗   ██╗██████╗ ██╗███████╗██╗   ██╗
+    ██╔══██╗██╔═══██╗████╗ ████║██╔══██╗██║   ██║██╔══██╗██║██╔════╝╚██╗ ██╔╝
+    ██║  ██║██║   ██║██╔████╔██║██████╔╝██║   ██║██████╔╝██║█████╗   ╚████╔╝ 
+    ██║  ██║██║   ██║██║╚██╔╝██║██╔═══╝ ██║   ██║██╔══██╗██║██╔══╝    ╚██╔╝  
+    ██████╔╝╚██████╔╝██║ ╚═╝ ██║██║     ╚██████╔╝██║  ██║██║██║        ██║   
+    ╚═════╝  ╚═════╝ ╚═╝     ╚═╝╚═╝      ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝        ╚═╝   
+    </div>
+  </header>
+
+  <div class="grid" id="resultsGrid">
+    <!-- Cards injected by JS -->
+  </div>
+
+  <div class="actions">
+    <button onclick="runAll()">▶ RUN FULL MAPPING</button>
+    <button class="secondary" onclick="runBypassBattery()">⚡ BYPASS BATTERY ONLY</button>
+    <button class="secondary" onclick="exportJSON()">⬇ EXPORT JSON</button>
+    <button class="secondary" onclick="exportMarkdown()">⬇ EXPORT MARKDOWN</button>
+    <button class="secondary" onclick="clearLog()">CLEAR LOG</button>
+  </div>
+
+  <div class="console" id="console"></div>
+</div>
+
+<script>
+// ============================================
+// i=01 — DOMPurify Constraint Mapper Engine
+// ============================================
+const mapper = {
+  data: {},
+  log: [],
+  startTime: 0,
+  DOMPurify: null,
+  version: null,
+
+  init() {
+    this.startTime = performance.now();
+    this.data = {
+      meta: {
+        timestamp: new Date().toISOString(),
+        url: location.href,
+        userAgent: navigator.userAgent
+      },
+      presence: {},
+      version: {},
+      config: {},
+      hooks: {},
+      allowedLists: {},
+      bypassBattery: {},
+      hookSurface: {},
+      mutationVectors: []
+    };
+    this.log.push(`[${this.ts()}] Mapper initialized`);
+  },
+
+  ts() {
+    return (performance.now() - this.startTime).toFixed(2);
+  },
+
+  logMsg(msg, type='info') {
+    this.log.push({time: this.ts(), msg, type});
+    const c = document.getElementById('console');
+    const colorClass = type === 'ok' ? 'console-ok' : type === 'warn' ? 'console-warn' : type === 'fail' ? 'console-fail' : 'console-info';
+    c.innerHTML += `<div class="console-line"><span class="console-time">[${this.ts()}s]</span> <span class="${colorClass}">${msg}</span></div>`;
+    c.scrollTop = c.scrollHeight;
+  },
+
+  // --- PRESENCE DETECTION ---
+  detectPresence() {
+    this.logMsg('Detecting DOMPurify presence...', 'info');
+    const d = this.data.presence;
+
+    // Global window.DOMPurify
+    d.globalPresent = typeof window.DOMPurify !== 'undefined';
+    d.globalType = d.globalPresent ? typeof window.DOMPurify : 'none';
+
+    // AMD / RequireJS
+    d.amdPresent = typeof define === 'function' && define.amd;
+    d.amdModule = null;
+    if (d.amdPresent && typeof require !== 'undefined') {
+      try {
+        const mod = require('dompurify');
+        d.amdModule = mod ? 'resolved' : 'null';
+      } catch(e) { d.amdModule = 'error: ' + e.message; }
+    }
+
+    // CommonJS / Node-like
+    d.commonJSPresent = typeof module !== 'undefined' && module.exports;
+
+    // ES Module (check for createDOMPurify)
+    d.hasCreateDOMPurify = typeof createDOMPurify !== 'undefined';
+
+    // Try to grab an instance
+    let instance = null;
+    if (d.globalPresent && window.DOMPurify) {
+      instance = window.DOMPurify;
+    } else if (typeof DOMPurify !== 'undefined') {
+      instance = DOMPurify;
+    }
+
+    this.DOMPurify = instance;
+    d.instanceAcquired = !!instance;
+    d.instanceType = instance ? (typeof instance.sanitize === 'function' ? 'full' : 'partial') : 'none';
+
+    this.logMsg(`DOMPurify: ${d.instanceAcquired ? 'ACQUIRED' : 'NOT FOUND'} (${d.instanceType})`, d.instanceAcquired ? 'ok' : 'fail');
+    return d.instanceAcquired;
+  },
+
+  // --- VERSION EXTRACTION ---
+  detectVersion() {
+    if (!this.DOMPurify) return;
+    this.logMsg('Extracting version information...', 'info');
+    const d = this.data.version;
+
+    // Direct version property
+    d.rawVersion = this.DOMPurify.version || this.DOMPurify.VERSION || 'unknown';
+    d.isSemver = /^\d+\.\d+\.\d+/.test(d.rawVersion);
+
+    if (d.isSemver) {
+      const parts = d.rawVersion.split('.');
+      d.major = parseInt(parts[0]);
+      d.minor = parseInt(parts[1]);
+      d.patch = parseInt(parts[2]);
+    }
+
+    // Fingerprint via config defaults (version-specific behavior)
+    d.fingerprinted = this.fingerprintByBehavior();
+
+    // Known vulnerable version ranges
+    d.knownVulnerable = this.checkKnownVulnerable(d.rawVersion);
+
+    this.logMsg(`Version: ${d.rawVersion} ${d.knownVulnerable ? '⚠ KNOWN VULNERABLE RANGE' : ''}`, d.knownVulnerable ? 'warn' : 'ok');
+  },
+
+  fingerprintByBehavior() {
+    // Test version-specific behaviors
+    const tests = [];
+
+    // 2.0.0+ behavior: <form> allowed by default
+    const formTest = this.DOMPurify.sanitize('<form action="x"><input name="y"></form>');
+    tests.push({name: 'form_allowed', result: formTest.includes('<form>')});
+
+    // 2.2.0+ behavior: <svg> with onload stripped differently
+    const svgTest = this.DOMPurify.sanitize('<svg onload=alert(1)>');
+    tests.push({name: 'svg_onload_stripped', result: !svgTest.includes('onload')});
+
+    // 2.3.0+ behavior: <style> in SVG handling
+    const styleTest = this.DOMPurify.sanitize('<svg><style>*{color:red}</style></svg>');
+    tests.push({name: 'svg_style_preserved', result: styleTest.includes('<style>')});
+
+    // 3.0.0+ behavior: namespace handling changes
+    const nsTest = this.DOMPurify.sanitize('<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>');
+    tests.push({name: 'mathml_namespace_pivot', result: nsTest.includes('onerror')});
+
+    return tests;
+  },
+
+  checkKnownVulnerable(version) {
+    if (!version || version === 'unknown') return false;
+    const vulnRanges = [
+      { range: '<2.0.17', cve: 'mXSS via template', desc: 'template content bypass' },
+      { range: '<2.3.10', cve: 'mXSS via namespace', desc: 'mathml/svg namespace confusion' },
+      { range: '<3.0.0', cve: 'prototype pollution', desc: 'config object prototype chain' },
+      { range: '<3.0.6', cve: 'template mXSS', desc: 'template element bypass' },
+      { range: '<3.0.9', cve: 'mathml mXSS', desc: 'mathml integration point bypass' },
+      { range: '<3.1.3', cve: 'DOM clobbering', desc: 'form name attribute clobbering' }
+    ];
+
+    // Simple semver comparison (naive)
+    const v = version.split('.').map(Number);
+    const hits = [];
+    for (const r of vulnRanges) {
+      const bound = r.range.replace('<', '').split('.').map(Number);
+      if (v[0] < bound[0] || (v[0] === bound[0] && v[1] < bound[1]) || (v[0] === bound[0] && v[1] === bound[1] && v[2] < bound[2])) {
+        hits.push(r);
+      }
+    }
+    return hits.length > 0 ? hits : false;
+  },
+
+  // --- CONFIG EXTRACTION ---
+  detectConfig() {
+    if (!this.DOMPurify) return;
+    this.logMsg('Mapping active configuration...', 'info');
+    const d = this.data.config;
+
+    // Default config reference
+    try {
+      d.defaultConfigAccessible = !!this.DOMPurify.defaultConfig;
+      if (d.defaultConfigAccessible) {
+        d.defaultConfigKeys = Object.keys(this.DOMPurify.defaultConfig);
+      }
+    } catch(e) { d.defaultConfigAccessible = false; }
+
+    // Active config via sanitize call introspection
+    d.returnDOM = false;
+    d.returnDOMFragment = false;
+    d.wholedoc = false;
+    try {
+      const probe = this.DOMPurify.sanitize('<div id="probe">test</div>', {RETURN_DOM: true});
+      d.returnDOM = probe && typeof probe.querySelector === 'function';
+    } catch(e) {}
+
+    try {
+      const probe = this.DOMPurify.sanitize('<div id="probe">test</div>', {RETURN_DOM_FRAGMENT: true});
+      d.returnDOMFragment = probe && probe.nodeType === 11;
+    } catch(e) {}
+
+    try {
+      const probe = this.DOMPurify.sanitize('<html><body>test</body></html>', {WHOLE_DOCUMENT: true});
+      d.wholedoc = probe.includes('<html') || probe.includes('<body');
+    } catch(e) {}
+
+    // USE_PROFILES detection
+    d.useProfiles = false;
+    try {
+      const htmlProfile = this.DOMPurify.sanitize('<svg><g></g></svg>', {USE_PROFILES: {html: true}});
+      const svgProfile = this.DOMPurify.sanitize('<svg><g></g></svg>', {USE_PROFILES: {svg: true}});
+      d.useProfiles = htmlProfile !== svgProfile;
+    } catch(e) {}
+
+    // Sanitize test for behavior inference
+    const testCases = [
+      { name: 'script_tag', input: '<script>alert(1)<\/script>', expect: '' },
+      { name: 'event_handler', input: '<img src=x onerror=alert(1)>', expect: 'no onerror' },
+      { name: 'javascript_url', input: '<a href="javascript:alert(1)">x</a>', expect: 'no javascript' },
+      { name: 'data_url', input: '<a href="data:text/html,<script>alert(1)<\/script>">x</a>', expect: 'no data' },
+      { name: 'style_tag', input: '<style>body{color:red}</style>', expect: 'style preserved' },
+      { name: 'iframe', input: '<iframe src="javascript:alert(1)"></iframe>', expect: 'no iframe' },
+      { name: 'object', input: '<object data="x"></object>', expect: 'no object' },
+      { name: 'form', input: '<form action="x"><input name="y"></form>', expect: 'form preserved' }
+    ];
+
+    d.behaviorTests = [];
+    for (const tc of testCases) {
+      const result = this.DOMPurify.sanitize(tc.input);
+      let status = 'blocked';
+      if (tc.name === 'script_tag' && result.includes('<script')) status = 'bypassed';
+      else if (tc.name === 'event_handler' && result.includes('onerror')) status = 'bypassed';
+      else if (tc.name === 'javascript_url' && result.includes('javascript:')) status = 'bypassed';
+      else if (tc.name === 'data_url' && result.includes('data:')) status = 'bypassed';
+      else if (tc.name === 'style_tag' && !result.includes('<style')) status = 'stripped';
+      else if (tc.name === 'iframe' && result.includes('<iframe')) status = 'bypassed';
+      else if (tc.name === 'object' && result.includes('<object')) status = 'bypassed';
+      else if (tc.name === 'form' && !result.includes('<form')) status = 'stripped';
+      else status = 'blocked';
+
+      d.behaviorTests.push({...tc, result, status});
+    }
+
+    this.logMsg(`Config: RETURN_DOM=${d.returnDOM}, WHOLE_DOCUMENT=${d.wholedoc}, USE_PROFILES=${d.useProfiles}`, 'info');
+  },
+
+  // --- HOOK SURFACE ---
+  detectHooks() {
+    if (!this.DOMPurify) return;
+    this.logMsg('Enumerating hook surface...', 'info');
+    const d = this.data.hooks;
+
+    // Known hook names in DOMPurify
+    const knownHooks = [
+      'beforeSanitizeElements',
+      'uponSanitizeElement',
+      'afterSanitizeElements',
+      'beforeSanitizeAttributes',
+      'uponSanitizeAttribute',
+      'afterSanitizeAttributes',
+      'beforeSanitizeShadowDOM',
+      'uponSanitizeShadowNode',
+      'afterSanitizeShadowDOM'
+    ];
+
+    d.registeredHooks = [];
+    d.hookCounts = {};
+
+    if (this.DOMPurify.addHook && this.DOMPurify.removedHooks) {
+      for (const hookName of knownHooks) {
+        try {
+          // Probe if hook is registered by adding a no-op and checking if it fires
+          let fired = false;
+          const probe = () => { fired = true; };
+          this.DOMPurify.addHook(hookName, probe);
+          this.DOMPurify.sanitize('<div>test</div>');
+          this.DOMPurify.removeHook(hookName);
+
+          // If there were pre-existing hooks, we can detect by checking removedHooks
+          if (this.DOMPurify.removedHooks && this.DOMPurify.removedHooks[hookName]) {
+            d.hookCounts[hookName] = this.DOMPurify.removedHooks[hookName].length;
+            d.registeredHooks.push(hookName);
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Hook pollution surface
+    d.hookPollutionPossible = false;
+    try {
+      const original = this.DOMPurify.sanitize;
+      // Check if we can shadow the sanitize method
+      if (original) {
+        d.hookPollutionPossible = true;
+      }
+    } catch(e) {}
+
+    this.logMsg(`Hooks registered: ${d.registeredHooks.length > 0 ? d.registeredHooks.join(', ') : 'None detected'}`, d.registeredHooks.length > 0 ? 'warn' : 'ok');
+  },
+
+  // --- ALLOWED LISTS ---
+  detectAllowedLists() {
+    if (!this.DOMPurify) return;
+    this.logMsg('Extracting allowed tag/attribute lists...', 'info');
+    const d = this.data.allowedLists;
+
+    // Try to infer allowed tags by probing
+    const tagList = [
+      'a', 'abbr', 'acronym', 'address', 'area', 'article', 'aside', 'audio',
+      'b', 'bdi', 'bdo', 'big', 'blink', 'blockquote', 'body', 'br', 'button',
+      'canvas', 'caption', 'center', 'cite', 'code', 'col', 'colgroup', 'data',
+      'datalist', 'dd', 'del', 'details', 'dfn', 'dialog', 'dir', 'div', 'dl',
+      'dt', 'em', 'fieldset', 'figcaption', 'figure', 'font', 'footer', 'form',
+      'frame', 'frameset', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'head', 'header',
+      'hgroup', 'hr', 'html', 'i', 'iframe', 'img', 'input', 'ins', 'kbd',
+      'label', 'legend', 'li', 'main', 'map', 'mark', 'marquee', 'math',
+      'menu', 'meter', 'nav', 'nobr', 'noembed', 'noframes', 'noscript',
+      'object', 'ol', 'optgroup', 'option', 'output', 'p', 'param', 'picture',
+      'plaintext', 'portal', 'pre', 'progress', 'q', 'rb', 'rp', 'rt', 'ruby',
+      's', 'samp', 'section', 'select', 'slot', 'small', 'source', 'span',
+      'strike', 'strong', 'sub', 'summary', 'sup', 'svg', 'table', 'tbody',
+      'td', 'template', 'textarea', 'tfoot', 'th', 'thead', 'time', 'title',
+      'tr', 'track', 'tt', 'u', 'ul', 'var', 'video', 'wbr', 'xmp'
+    ];
+
+    d.allowedTags = [];
+    d.blockedTags = [];
+    for (const tag of tagList) {
+      const result = this.DOMPurify.sanitize(`<${tag}>test</${tag}>`);
+      if (result.includes(`<${tag}>`)) {
+        d.allowedTags.push(tag);
+      } else {
+        d.blockedTags.push(tag);
+      }
+    }
+
+    // Attribute probing on a safe element
+    const attrList = [
+      'accept', 'action', 'align', 'alt', 'autocapitalize', 'autocomplete',
+      'autoplay', 'background', 'bgcolor', 'border', 'checked', 'cite',
+      'class', 'color', 'cols', 'colspan', 'controls', 'coords', 'crossorigin',
+      'datetime', 'default', 'dir', 'disabled', 'download', 'draggable',
+      'enctype', 'face', 'for', 'headers', 'height', 'hidden', 'high', 'href',
+      'hreflang', 'id', 'integrity', 'ismap', 'kind', 'label', 'lang',
+      'list', 'loop', 'low', 'max', 'maxlength', 'media', 'method', 'min',
+      'minlength', 'multiple', 'muted', 'name', 'noshade', 'novalidate',
+      'nowrap', 'open', 'optimum', 'pattern', 'placeholder', 'poster',
+      'preload', 'pubdate', 'radiogroup', 'readonly', 'rel', 'required',
+      'rev', 'reversed', 'role', 'rows', 'rowspan', 'spellcheck', 'scope',
+      'selected', 'shape', 'size', 'sizes', 'span', 'srclang', 'start',
+      'src', 'srcset', 'step', 'style', 'summary', 'tabindex', 'target',
+      'title', 'type', 'usemap', 'valign', 'value', 'width', 'wrap',
+      // Event handlers (should all be blocked)
+      'onclick', 'onerror', 'onload', 'onmouseover', 'onfocus', 'onblur',
+      'onchange', 'onsubmit', 'onkeydown', 'onkeypress', 'onkeyup',
+      'onmousedown', 'onmouseup', 'onmousemove', 'onmouseout',
+      'ondblclick', 'oncontextmenu', 'onwheel', 'ondrag', 'ondrop'
+    ];
+
+    d.allowedAttrs = [];
+    d.blockedAttrs = [];
+    for (const attr of attrList) {
+      const result = this.DOMPurify.sanitize(`<div ${attr}="x">test</div>`);
+      if (result.includes(`${attr}=`)) {
+        d.allowedAttrs.push(attr);
+      } else {
+        d.blockedAttrs.push(attr);
+      }
+    }
+
+    this.logMsg(`Allowed: ${d.allowedTags.length} tags, ${d.allowedAttrs.length} attrs`, 'info');
+  },
+
+  // --- BYPASS BATTERY ---
+  runBypassBattery() {
+    if (!this.DOMPurify) {
+      this.logMsg('DOMPurify not available — skipping bypass battery', 'fail');
+      return;
+    }
+    this.logMsg('Running bypass vector battery...', 'info');
+    const d = this.data.bypassBattery;
+    const vectors = [];
+
+    const addVector = (name, payload, testFn, severity) => {
+      let result, bypassed;
+      try {
+        result = testFn();
+        bypassed = result.bypassed;
+      } catch(e) {
+        result = { output: 'ERROR: ' + e.message, bypassed: false };
+        bypassed = false;
+      }
+      vectors.push({ name, payload, output: result.output, bypassed, severity });
+      this.logMsg(`${name}: ${bypassed ? 'BYPASSED ⚠' : 'BLOCKED'}`, bypassed ? 'fail' : 'ok');
+    };
+
+    // 1. Namespace pivot: SVG -> HTML
+    addVector('SVG Namespace Pivot',
+      '<svg><p><style><!--</style><img src=x onerror=alert(1)>--></style>',
+      () => {
+        const out = this.DOMPurify.sanitize('<svg><p><style><!--</style><img src=x onerror=alert(1)>--></style>');
+        return { output: out, bypassed: out.includes('onerror') };
+      }, 'CRITICAL');
+
+    // 2. MathML namespace pivot
+    addVector('MathML Namespace Pivot',
+      '<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>',
+      () => {
+        const out = this.DOMPurify.sanitize('<math><mtext><table><mglyph><style><img src=x onerror=alert(1)>');
+        return { output: out, bypassed: out.includes('onerror') };
+      }, 'CRITICAL');
+
+    // 3. Template content bypass
+    addVector('Template Content Bypass',
+      '<template><script>alert(1)<\/script></template>',
+      () => {
+        const out = this.DOMPurify.sanitize('<template><script>alert(1)<\/script></template>');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'HIGH');
+
+    // 4. Form clobbering
+    addVector('Form Name Clobbering',
+      '<form id="test"><input name="body"></form>',
+      () => {
+        const out = this.DOMPurify.sanitize('<form id="test"><input name="body"></form>');
+        return { output: out, bypassed: out.includes('<form') && out.includes('name=') };
+      }, 'MEDIUM');
+
+    // 5. ForeignObject HTML
+    addVector('SVG ForeignObject HTML',
+      '<svg><foreignObject><body xmlns="http://www.w3.org/1999/xhtml"><script>alert(1)<\/script></body></foreignObject></svg>',
+      () => {
+        const out = this.DOMPurify.sanitize('<svg><foreignObject><body xmlns="http://www.w3.org/1999/xhtml"><script>alert(1)<\/script></body></foreignObject></svg>');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'CRITICAL');
+
+    // 6. Data attribute event handler
+    addVector('Data Attribute Handler',
+      '<a data-onclick="alert(1)">click</a>',
+      () => {
+        const out = this.DOMPurify.sanitize('<a data-onclick="alert(1)">click</a>');
+        return { output: out, bypassed: out.includes('data-onclick') };
+      }, 'LOW');
+
+    // 7. Style-based execution
+    addVector('Style Expression',
+      '<div style="background-image:url(javascript:alert(1))">x</div>',
+      () => {
+        const out = this.DOMPurify.sanitize('<div style="background-image:url(javascript:alert(1))">x</div>');
+        return { output: out, bypassed: out.includes('javascript:') };
+      }, 'MEDIUM');
+
+    // 8. Named accessor via id
+    addVector('Named Accessor Pollution',
+      '<img id="x"><img id="x">',
+      () => {
+        const out = this.DOMPurify.sanitize('<img id="x"><img id="x">');
+        return { output: out, bypassed: out.includes('id=') };
+      }, 'INFO');
+
+    // 9. Comments with conditional
+    addVector('Conditional Comment',
+      '<!--[if IE]><script>alert(1)<\/script><![endif]-->',
+      () => {
+        const out = this.DOMPurify.sanitize('<!--[if IE]><script>alert(1)<\/script><![endif]-->');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'LOW');
+
+    // 10. Custom element bypass
+    addVector('Custom Element Bypass',
+      '<xyz><script>alert(1)<\/script></xyz>',
+      () => {
+        const out = this.DOMPurify.sanitize('<xyz><script>alert(1)<\/script></xyz>');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'MEDIUM');
+
+    // 11. DOM Clobbering via attributes
+    addVector('DOM Clobbering Attributes',
+      '<img name="createElement">',
+      () => {
+        const out = this.DOMPurify.sanitize('<img name="createElement">');
+        return { output: out, bypassed: out.includes('name=') };
+      }, 'MEDIUM');
+
+    // 12. Prototype pollution via config
+    addVector('Config Prototype Pollution',
+      '<img src=x>',
+      () => {
+        try {
+          const malicious = JSON.parse('{"__proto__": {"allowedTags": ["script"]}}');
+          const out = this.DOMPurify.sanitize('<img src=x>', malicious);
+          return { output: out, bypassed: out.includes('<script') };
+        } catch(e) {
+          return { output: 'N/A', bypassed: false };
+        }
+      }, 'HIGH');
+
+    // 13. Return DOM fragment inspection
+    addVector('RETURN_DOM Fragment Leak',
+      '<img src=x onerror=alert(1)>',
+      () => {
+        try {
+          const frag = this.DOMPurify.sanitize('<img src=x onerror=alert(1)>', {RETURN_DOM_FRAGMENT: true});
+          const hasEvent = frag.querySelector('img') && frag.querySelector('img').hasAttribute('onerror');
+          return { output: frag.nodeName, bypassed: hasEvent };
+        } catch(e) {
+          return { output: 'ERROR', bypassed: false };
+        }
+      }, 'HIGH');
+
+    // 14. WHOLE_DOCUMENT with doctype
+    addVector('WHOLE_DOCUMENT Doctype Leak',
+      '<!DOCTYPE html><html><body><script>alert(1)<\/script></body></html>',
+      () => {
+        const out = this.DOMPurify.sanitize('<!DOCTYPE html><html><body><script>alert(1)<\/script></body></html>', {WHOLE_DOCUMENT: true});
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'HIGH');
+
+    // 15. NAMESPACE confusion with XLink
+    addVector('XLink Namespace Handler',
+      '<svg><a xlink:href="javascript:alert(1)"><rect width="100" height="100"/></a></svg>',
+      () => {
+        const out = this.DOMPurify.sanitize('<svg><a xlink:href="javascript:alert(1)"><rect width="100" height="100"/></a></svg>');
+        return { output: out, bypassed: out.includes('javascript:') };
+      }, 'CRITICAL');
+
+    // 16. MATHML with maction
+    addVector('MathML maction Handler',
+      '<math><maction onclick="alert(1)">X</maction></math>',
+      () => {
+        const out = this.DOMPurify.sanitize('<math><maction onclick="alert(1)">X</maction></math>');
+        return { output: out, bypassed: out.includes('onclick') };
+      }, 'HIGH');
+
+    // 17. Shadow DOM template
+    addVector('Declarative Shadow DOM',
+      '<template shadowroot="open"><script>alert(1)<\/script></template>',
+      () => {
+        const out = this.DOMPurify.sanitize('<template shadowroot="open"><script>alert(1)<\/script></template>');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'HIGH');
+
+    // 18. Parser insertion point: noscript
+    addVector('Noscript Parsing Divergence',
+      '<noscript><p title="</noscript><img src=x onerror=alert(1)>">',
+      () => {
+        const out = this.DOMPurify.sanitize('<noscript><p title="</noscript><img src=x onerror=alert(1)>">');
+        return { output: out, bypassed: out.includes('onerror') };
+      }, 'MEDIUM');
+
+    // 19. Table foster parenting
+    addVector('Table Foster Parenting',
+      '<table><tr><td><p><svg><foreignObject><body><script>alert(1)<\/script></body></foreignObject></svg></p></td></tr></table>',
+      () => {
+        const out = this.DOMPurify.sanitize('<table><tr><td><p><svg><foreignObject><body><script>alert(1)<\/script></body></foreignObject></svg></p></td></tr></table>');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'HIGH');
+
+    // 20. Mixed namespace with annotation-xml
+    addVector('MathML annotation-xml',
+      '<math><annotation-xml encoding="text/html"><script>alert(1)<\/script></annotation-xml></math>',
+      () => {
+        const out = this.DOMPurify.sanitize('<math><annotation-xml encoding="text/html"><script>alert(1)<\/script></annotation-xml></math>');
+        return { output: out, bypassed: out.includes('<script') };
+      }, 'CRITICAL');
+
+    d.vectors = vectors;
+    d.bypassCount = vectors.filter(v => v.bypassed).length;
+    d.criticalCount = vectors.filter(v => v.bypassed && v.severity === 'CRITICAL').length;
+    d.highCount = vectors.filter(v => v.bypassed && v.severity === 'HIGH').length;
+
+    this.logMsg(`Bypass battery complete: ${d.bypassCount}/${vectors.length} vectors bypassed (${d.criticalCount} CRITICAL)`, d.bypassCount > 0 ? 'fail' : 'ok');
+  },
+
+  // --- HOOK INTERCEPTION SURFACE ---
+  detectHookSurface() {
+    if (!this.DOMPurify) return;
+    this.logMsg('Analyzing hook interception surface...', 'info');
+    const d = this.data.hookSurface;
+
+    // Can we intercept sanitize calls?
+    d.sanitizeInterceptable = false;
+    try {
+      const orig = this.DOMPurify.sanitize;
+      let called = false;
+      this.DOMPurify.sanitize = function(...args) { called = true; return orig.apply(this, args); };
+      this.DOMPurify.sanitize('<div>test</div>');
+      this.DOMPurify.sanitize = orig;
+      d.sanitizeInterceptable = called;
+    } catch(e) { d.sanitizeInterceptable = false; }
+
+    // Can we pollute the removed array?
+    d.removedArrayAccessible = false;
+    try {
+      const result = this.DOMPurify.sanitize('<script>alert(1)<\/script>', {RETURN_DOM: true});
+      d.removedArrayAccessible = result && result.removed && Array.isArray(result.removed);
+    } catch(e) {}
+
+    // Config object mutability
+    d.configMutable = false;
+    try {
+      if (this.DOMPurify.defaultConfig) {
+        const orig = this.DOMPurify.defaultConfig.ALLOWED_TAGS;
+        this.DOMPurify.defaultConfig.ALLOWED_TAGS = ['script'];
+        const test = this.DOMPurify.sanitize('<script>alert(1)<\/script>');
+        this.DOMPurify.defaultConfig.ALLOWED_TAGS = orig;
+        d.configMutable = test.includes('<script');
+      }
+    } catch(e) {}
+
+    // Hook registry pollution
+    d.hookRegistryPollutable = false;
+    try {
+      if (this.DOMPurify.addHook) {
+        const evil = (node) => { if (node.nodeName === 'DIV') node.innerHTML = '<script>alert(1)<\/script>'; };
+        this.DOMPurify.addHook('afterSanitizeElements', evil);
+        const test = this.DOMPurify.sanitize('<div>test</div>');
+        this.DOMPurify.removeHook('afterSanitizeElements');
+        d.hookRegistryPollutable = test.includes('<script');
+      }
+    } catch(e) {}
+
+    this.logMsg(`Hook surface: intercept=${d.sanitizeInterceptable}, mutable=${d.configMutable}, pollutable=${d.hookRegistryPollutable}`, 
+      (d.sanitizeInterceptable || d.configMutable || d.hookRegistryPollutable) ? 'warn' : 'ok');
+  },
+
+  // --- MUTATION VECTOR CATALOG ---
+  catalogMutationVectors() {
+    if (!this.DOMPurify) return;
+    this.logMsg('Cataloging mutation vectors...', 'info');
+    const vectors = [];
+
+    const testMutation = (name, input, checkFn) => {
+      try {
+        const output = this.DOMPurify.sanitize(input);
+        const mutated = checkFn(input, output);
+        if (mutated) {
+          vectors.push({ name, input, output, mutation: mutated });
+        }
+      } catch(e) {}
+    };
+
+    // Attribute stripping mutations
+    testMutation('id_stripped', '<div id="x">test</div>', (i, o) => o.includes('id=') ? false : 'id attribute removed');
+    testMutation('class_stripped', '<div class="x">test</div>', (i, o) => o.includes('class=') ? false : 'class attribute removed');
+    testMutation('style_stripped', '<div style="color:red">test</div>', (i, o) => o.includes('style=') ? false : 'style attribute removed');
+
+    // Tag stripping mutations
+    testMutation('span_stripped', '<span>test</span>', (i, o) => o.includes('<span') ? false : 'span tag removed');
+    testMutation('div_preserved', '<div>test</div>', (i, o) => o.includes('<div') ? false : 'div tag removed');
+
+    // Namespace mutations
+    testMutation('svg_tag_preserved', '<svg></svg>', (i, o) => o.includes('<svg') ? false : 'svg tag removed');
+    testMutation('math_tag_preserved', '<math></math>', (i, o) => o.includes('<math') ? false : 'math tag removed');
+
+    // URL scheme mutations
+    testMutation('http_preserved', '<a href="http://example.com">x</a>', (i, o) => o.includes('http://') ? false : 'http scheme removed');
+    testMutation('https_preserved', '<a href="https://example.com">x</a>', (i, o) => o.includes('https://') ? false : 'https scheme removed');
+    testMutation('ftp_stripped', '<a href="ftp://example.com">x</a>', (i, o) => o.includes('ftp://') ? false : 'ftp scheme removed');
+
+    // Encoding mutations
+    testMutation('entity_encoded', '<div title="&lt;script&gt;">x</div>', (i, o) => {
+      return o.includes('&lt;') ? 'entities preserved' : (o.includes('<script') ? 'entities decoded dangerously' : 'entities decoded');
+    });
+
+    this.data.mutationVectors = vectors;
+    this.logMsg(`Mutation vectors cataloged: ${vectors.length}`, vectors.length > 0 ? 'warn' : 'ok');
+  },
+
+  // --- RENDERING ---
+  render() {
+    const grid = document.getElementById('resultsGrid');
+    grid.innerHTML = '';
+
+    const createCard = (title, badge, badgeClass, content) => {
+      return `<div class="card"><div class="card-title">${title}<span class="badge ${badgeClass}">${badge}</span></div>${content}</div>`;
+    };
+
+    const createTable = (rows) => {
+      let html = '<table>';
+      rows.forEach(([k, v, cls]) => {
+        html += `<tr><td>${k}</td><td class="${cls || ''}">${v}</td></tr>`;
+      });
+      html += '</table>';
+      return html;
+    };
+
+    // PRESENCE CARD
+    const p = this.data.presence;
+    grid.innerHTML += createCard('PRESENCE / AVAILABILITY', p.instanceAcquired ? 'ACTIVE' : 'MISSING', p.instanceAcquired ? 'badge-ok' : 'badge-fail',
+      createTable([
+        ['Global Present', p.globalPresent ? 'YES' : 'No', p.globalPresent ? 'value-ok' : 'value-warn'],
+        ['Global Type', p.globalType, ''],
+        ['AMD Present', p.amdPresent ? 'YES' : 'No', ''],
+        ['AMD Module', p.amdModule || 'N/A', ''],
+        ['CommonJS', p.commonJSPresent ? 'YES' : 'No', ''],
+        ['createDOMPurify', p.hasCreateDOMPurify ? 'YES' : 'No', ''],
+        ['Instance Acquired', p.instanceAcquired ? 'YES ✓' : 'NO ✗', p.instanceAcquired ? 'value-ok' : 'value-fail'],
+        ['Instance Type', p.instanceType, p.instanceType === 'full' ? 'value-ok' : 'value-warn']
+      ]));
+
+    // VERSION CARD
+    const v = this.data.version;
+    const vulnStatus = v.knownVulnerable ? 'VULNERABLE' : 'CLEAN';
+    grid.innerHTML += createCard('VERSION / FINGERPRINT', v.rawVersion || 'UNKNOWN', v.knownVulnerable ? 'badge-fail' : 'badge-ok',
+      createTable([
+        ['Raw Version', v.rawVersion || 'unknown', 'value-accent'],
+        ['Semver', v.isSemver ? `${v.major}.${v.minor}.${v.patch}` : 'No', ''],
+        ['Vulnerable Range', vulnStatus, v.knownVulnerable ? 'value-fail' : 'value-ok'],
+        ['Known CVEs', v.knownVulnerable ? v.knownVulnerable.map(x => x.cve).join(', ') : 'None', v.knownVulnerable ? 'value-fail' : 'value-ok']
+      ]) + (v.fingerprinted ? '<div style="margin-top:0.5rem;font-size:0.75rem;color:var(--muted)"><b>Behavior Fingerprint:</b></div>' + v.fingerprinted.map(t => `<div style="font-size:0.7rem;padding:2px 0;color:${t.result ? 'var(--warn)' : 'var(--muted)'}">${t.name}: ${t.result ? 'TRUE' : 'FALSE'}</div>`).join('') : ''));
+
+    // CONFIG CARD
+    const c = this.data.config;
+    grid.innerHTML += createCard('ACTIVE CONFIGURATION', 'PROFILE', 'badge-info',
+      createTable([
+        ['Default Config Accessible', c.defaultConfigAccessible ? 'YES' : 'No', c.defaultConfigAccessible ? 'value-ok' : 'value-warn'],
+        ['Default Config Keys', c.defaultConfigKeys ? c.defaultConfigKeys.length + ' keys' : 'N/A', ''],
+        ['RETURN_DOM', c.returnDOM ? 'YES' : 'No', c.returnDOM ? 'value-warn' : 'value-ok'],
+        ['RETURN_DOM_FRAGMENT', c.returnDOMFragment ? 'YES' : 'No', c.returnDOMFragment ? 'value-warn' : 'value-ok'],
+        ['WHOLE_DOCUMENT', c.wholedoc ? 'YES' : 'No', c.wholedoc ? 'value-warn' : 'value-ok'],
+        ['USE_PROFILES', c.useProfiles ? 'YES' : 'No', c.useProfiles ? 'value-warn' : 'value-ok']
+      ]) + (c.behaviorTests ? '<div style="margin-top:0.5rem;font-size:0.75rem;color:var(--muted)"><b>Behavior Tests:</b></div>' + c.behaviorTests.map(t => `<div class="test-row"><span class="test-name">${t.name}</span><span class="test-result ${t.status === 'bypassed' ? 'fail' : t.status === 'stripped' ? 'partial' : 'pass'}">${t.status.toUpperCase()}</span></div>`).join('') : ''));
+
+    // HOOKS CARD
+    const h = this.data.hooks;
+    grid.innerHTML += createCard('HOOK REGISTRY', `${h.registeredHooks ? h.registeredHooks.length : 0} ACTIVE`, (h.registeredHooks && h.registeredHooks.length > 0) ? 'badge-warn' : 'badge-ok',
+      createTable([
+        ['Registered Hooks', h.registeredHooks && h.registeredHooks.length > 0 ? h.registeredHooks.join(', ') : 'None detected', h.registeredHooks && h.registeredHooks.length > 0 ? 'value-warn' : 'value-ok'],
+        ['Hook Pollution Possible', h.hookPollutionPossible ? 'YES ⚠' : 'No', h.hookPollutionPossible ? 'value-warn' : 'value-ok']
+      ]) + (h.hookCounts ? Object.entries(h.hookCounts).map(([k, v]) => `<div style="font-size:0.7rem;padding:2px 0;color:var(--muted)">${k}: ${v} hook(s)</div>`).join('') : ''));
+
+    // ALLOWED LISTS CARD
+    const a = this.data.allowedLists;
+    grid.innerHTML += createCard('ALLOWED LISTS', `${a.allowedTags ? a.allowedTags.length : 0} TAGS`, 'badge-info',
+      createTable([
+        ['Allowed Tags', a.allowedTags ? `<span style="font-size:0.7rem">${a.allowedTags.slice(0, 20).join(', ')}${a.allowedTags.length > 20 ? '...' : ''}</span>` : 'N/A', 'value-accent'],
+        ['Blocked Tags (sample)', a.blockedTags ? `<span style="font-size:0.7rem">${a.blockedTags.slice(0, 10).join(', ')}</span>` : 'N/A', ''],
+        ['Allowed Attributes', a.allowedAttrs ? `${a.allowedAttrs.length} attrs` : 'N/A', ''],
+        ['Blocked Event Handlers', a.blockedAttrs ? a.blockedAttrs.filter(x => x.startsWith('on')).length + ' blocked' : 'N/A', 'value-ok']
+      ]));
+
+    // BYPASS BATTERY CARD
+    const b = this.data.bypassBattery;
+    if (b.vectors) {
+      const bypassed = b.vectors.filter(v => v.bypassed);
+      const badgeClass = bypassed.length > 0 ? (b.criticalCount > 0 ? 'badge-fail' : 'badge-warn') : 'badge-ok';
+      const badgeText = bypassed.length > 0 ? `${bypassed.length} BYPASSED` : 'ALL BLOCKED';
+
+      let vectorHtml = '<div class="vector-grid">';
+      for (const vec of b.vectors) {
+        const statusClass = vec.bypassed ? 'bypassed' : 'blocked';
+        const statusText = vec.bypassed ? 'BYPASSED' : 'BLOCKED';
+        vectorHtml += `<div class="vector-item ${statusClass}">
+          <div class="vector-label">${vec.name} [${vec.severity}]</div>
+          <div class="vector-payload">${vec.payload.replace(/</g, '&lt;').replace(/>/g, '&gt;').substring(0, 60)}${vec.payload.length > 60 ? '...' : ''}</div>
+          <div class="vector-status ${vec.bypassed ? 'fail' : 'pass'}">${statusText}</div>
+        </div>`;
+      }
+      vectorHtml += '</div>';
+
+      grid.innerHTML += createCard('BYPASS BATTERY', badgeText, badgeClass,
+        createTable([
+          ['Total Vectors', b.vectors.length, ''],
+          ['Bypassed', b.bypassCount, b.bypassCount > 0 ? 'value-fail' : 'value-ok'],
+          ['Critical', b.criticalCount || 0, b.criticalCount > 0 ? 'value-fail' : 'value-ok'],
+          ['High', b.highCount || 0, b.highCount > 0 ? 'value-warn' : 'value-ok']
+        ]) + vectorHtml);
+    }
+
+    // HOOK SURFACE CARD
+    const hs = this.data.hookSurface;
+    grid.innerHTML += createCard('HOOK INTERCEPTION SURFACE', 'ANALYSIS', 'badge-info',
+      createTable([
+        ['Sanitize Interceptable', hs.sanitizeInterceptable ? 'YES ⚠' : 'No', hs.sanitizeInterceptable ? 'value-warn' : 'value-ok'],
+        ['Removed Array Accessible', hs.removedArrayAccessible ? 'YES' : 'No', hs.removedArrayAccessible ? 'value-warn' : 'value-ok'],
+        ['Config Mutable', hs.configMutable ? 'YES ⚠' : 'No', hs.configMutable ? 'value-fail' : 'value-ok'],
+        ['Hook Registry Pollutable', hs.hookRegistryPollutable ? 'YES ⚠' : 'No', hs.hookRegistryPollutable ? 'value-fail' : 'value-ok']
+      ]));
+
+    // MUTATION VECTORS CARD
+    const m = this.data.mutationVectors;
+    if (m && m.length > 0) {
+      let mutHtml = '<div style="font-size:0.75rem;">';
+      for (const vec of m) {
+        mutHtml += `<div style="padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--warn)">${vec.name}</span>: ${vec.mutation}</div>`;
+      }
+      mutHtml += '</div>';
+      grid.innerHTML += createCard('MUTATION VECTORS', `${m.length} FOUND`, 'badge-warn',
+        createTable([
+          ['Total Mutations', m.length, 'value-warn']
+        ]) + mutHtml);
+    }
+  }
+};
+
+// ============================================
+// UI CONTROLLERS
+// ============================================
+function runAll() {
+  document.getElementById('progressBar').style.width = '0%';
+  document.getElementById('console').innerHTML = '';
+  mapper.log = [];
+
+  const steps = [
+    () => { mapper.init(); updateProgress(5); },
+    () => { const found = mapper.detectPresence(); updateProgress(15); if (!found) { mapper.logMsg('DOMPurify not found — aborting deep probes', 'fail'); } },
+    () => { if (mapper.DOMPurify) { mapper.detectVersion(); } updateProgress(25); },
+    () => { if (mapper.DOMPurify) { mapper.detectConfig(); } updateProgress(40); },
+    () => { if (mapper.DOMPurify) { mapper.detectHooks(); } updateProgress(50); },
+    () => { if (mapper.DOMPurify) { mapper.detectAllowedLists(); } updateProgress(65); },
+    () => { if (mapper.DOMPurify) { mapper.runBypassBattery(); } updateProgress(80); },
+    () => { if (mapper.DOMPurify) { mapper.detectHookSurface(); } updateProgress(90); },
+    () => { if (mapper.DOMPurify) { mapper.catalogMutationVectors(); } updateProgress(95); },
+    () => { mapper.render(); updateProgress(100); }
+  ];
+
+  let i = 0;
+  function next() {
+    if (i < steps.length) {
+      steps[i]();
+      i++;
+      setTimeout(next, 50);
+    }
+  }
+  next();
+}
+
+function runBypassBattery() {
+  if (!mapper.DOMPurify) {
+    mapper.detectPresence();
+  }
+  if (mapper.DOMPurify) {
+    mapper.runBypassBattery();
+    mapper.render();
+  }
+}
+
+function updateProgress(pct) {
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(mapper.data, null, 2)], {type: 'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `i01-dompurify-constraints-${Date.now()}.json`;
+  a.click();
+  mapper.logMsg('JSON exported', 'ok');
+}
+
+function exportMarkdown() {
+  const d = mapper.data;
+  let md = `# i=01 — DOMPurify Constraint Mapper Report
+
+`;
+  md += `**Generated:** ${d.meta.timestamp}
+`;
+  md += `**URL:** ${d.meta.url}
+
+`;
+
+  md += `## Presence
+
+`;
+  md += `- **Instance Acquired:** ${d.presence.instanceAcquired ? 'YES' : 'NO'}
+`;
+  md += `- **Global Present:** ${d.presence.globalPresent ? 'YES' : 'No'}
+`;
+  md += `- **Instance Type:** ${d.presence.instanceType}
+
+`;
+
+  if (d.version.rawVersion) {
+    md += `## Version
+
+`;
+    md += `- **Version:** ${d.version.rawVersion}
+`;
+    md += `- **Vulnerable:** ${d.version.knownVulnerable ? 'YES — ' + d.version.knownVulnerable.map(x => x.cve).join(', ') : 'No known CVEs in range'}
+
+`;
+  }
+
+  if (d.bypassBattery.vectors) {
+    md += `## Bypass Battery Results
+
+`;
+    md += `- **Total:** ${d.bypassBattery.vectors.length}
+`;
+    md += `- **Bypassed:** ${d.bypassBattery.bypassCount}
+`;
+    md += `- **Critical:** ${d.bypassBattery.criticalCount || 0}
+
+`;
+    for (const v of d.bypassBattery.vectors) {
+      md += `### ${v.name} [${v.severity}]
+`;
+      md += `- **Status:** ${v.bypassed ? 'BYPASSED' : 'BLOCKED'}
+`;
+      md += `- **Payload:** \`${v.payload.replace(/`/g, '\`')}\`
+`;
+      md += `- **Output:** \`${v.output.replace(/`/g, '\`').substring(0, 200)}\`
+
+`;
+    }
+  }
+
+  const blob = new Blob([md], {type: 'text/markdown'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `i01-dompurify-constraints-${Date.now()}.md`;
+  a.click();
+  mapper.logMsg('Markdown exported', 'ok');
+}
+
+function clearLog() {
+  document.getElementById('console').innerHTML = '';
+  mapper.log = [];
+}
+
+// Auto-run on load
+window.addEventListener('DOMContentLoaded', runAll);
+</script>
+</body>
+</html>
